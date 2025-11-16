@@ -198,13 +198,11 @@
         /* --- NEW LAYOUT STYLES --- */
         #dashboard-panel {
             transition: width 0.3s ease;
-            /* Z-index fix for mobile layout */
             z-index: 20; 
         }
 
         #main-checklist-panel {
             transition: width 0.3s ease;
-            /* Sticky tabs container */
             position: relative; 
         }
 
@@ -220,18 +218,22 @@
             .dashboard-open #dashboard-panel {
                 width: 28rem; /* w-112 */
                 padding: 1.5rem; /* p-6 */
+                height: 100vh; /* Full height on desktop */
             }
             .dashboard-open #main-checklist-panel {
                 width: calc(100% - 28rem);
+                height: 100vh; /* Full height on desktop */
             }
 
             .dashboard-closed #dashboard-panel {
                 width: 0rem;
                 padding: 0;
                 overflow: hidden;
+                height: 100vh; /* Full height on desktop */
             }
             .dashboard-closed #main-checklist-panel {
                 width: 100%;
+                height: 100vh; /* Full height on desktop */
             }
         }
 
@@ -261,7 +263,8 @@
 </head>
 <body class="h-full">
     
-    <div class="flex flex-col md:flex-row h-full w-full dashboard-open">
+    <!-- Main container: On mobile, h-auto. On desktop, h-full -->
+    <div class="flex flex-col md:flex-row md:h-full w-full dashboard-open">
         <!-- "Open" button, hidden by default, shown when panel is closed -->
         <button id="open-dashboard-btn" class="hidden md:block fixed top-4 left-4 mcd-red text-white p-2 rounded-full shadow-lg z-30">
              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -269,8 +272,8 @@
             </svg>
         </button>
         
-        <!-- Left Panel: Dashboard (Shift Plans, Details, Targets) -->
-        <aside id="dashboard-panel" class="w-full md:w-112 h-full bg-white shadow-lg overflow-y-auto p-6 flex-shrink-0 z-20">
+        <!-- Left Panel: Dashboard. On mobile, h-auto. On desktop, h-full -->
+        <aside id="dashboard-panel" class="w-full md:w-112 md:h-full bg-white shadow-lg md:overflow-y-auto p-6 flex-shrink-0 z-20">
             <!-- Header for Dashboard -->
             <div class="flex justify-between items-center mb-6">
                 <h1 class="text-3xl md:text-4xl font-extrabold mcd-text-red">Dashboard</h1>
@@ -460,8 +463,8 @@
 
         </aside>
 
-        <!-- Right Panel: Checklists -->
-        <main id="main-checklist-panel" class="flex-1 h-full overflow-y-auto p-4 md:p-8">
+        <!-- Right Panel: Checklists. On mobile, h-auto. On desktop, h-full -->
+        <main id="main-checklist-panel" class="flex-1 md:h-full md:overflow-y-auto p-4 md:p-8">
             <h1 class="text-3xl md:text-4xl font-extrabold mcd-text-red mb-6 hidden md:block">Shift Management Tool</h1>
 
             <!-- Tab Navigation -->
@@ -1832,6 +1835,7 @@ Your goal is to be professional, clean, and highly organized.
 ONLY use plain text.
 DO NOT use Markdown (like **, #, or *).
 Format lists using a simple dash (-).
+DO NOT use asterisks for any formatting.
 
 Here are the metric rules:
 - Sales, GC, AC: Higher is better.
