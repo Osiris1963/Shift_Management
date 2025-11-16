@@ -693,6 +693,11 @@
           measurementId: "G-QTSC1B9PD5"
         };
         // --- END OF FIREBASE CONFIG ---
+
+        // --- NEW: GEMINI AI API KEY ---
+        // PASTE YOUR GEMINI API KEY HERE
+        const geminiApiKey = "AIzaSyAgT8Dvm1JS7FjWozoPBno2RgHWUx9LKI8";
+        // --- END OF GEMINI AI API KEY ---
         
         // --- Global App State ---
         let app, db, auth;
@@ -1913,8 +1918,15 @@ ${notes.length > 0 ? notes.join('\n') : 'No specific notes were logged.'}
 ---`;
 
             // 3. Call API
-            const apiKey = ""; // API key is handled by the platform
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            if (!geminiApiKey || geminiApiKey.includes("PASTE_YOUR")) {
+                console.error("Gemini API Key is missing.");
+                closeModal('ai-loading-modal');
+                document.getElementById('ai-summary-content').textContent = "Error: Gemini API Key is missing. Please follow the `ai_setup_guide.md` to add your key to the index.html file.";
+                openModal('ai-result-modal');
+                return;
+            }
+            
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${geminiApiKey}`;
 
             const payload = {
                 contents: [{ parts: [{ text: userPrompt }] }],
