@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-gray-100">
+<html lang="en" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,34 +11,40 @@
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
         body {
             font-family: 'Poppins', sans-serif;
-            background-color: #f3f4f6; /* gray-100 */
+            background-color: #f3f4f6;
         }
         
         /* McDonald's Colors */
         .mcd-red { background-color: #c00000; }
         .mcd-text-red { color: #c00000; }
         .mcd-yellow { background-color: #ffc72c; }
-        .mcd-text-yellow { color: #ffc72c; }
         
-        /* Active Tab Style */
+        /* Active Tab Style (for Shift Mgt page) */
         .active-tab {
-            background-color: #c00000; /* mcd-red */
-            color: #ffffff; /* white */
+            background-color: #9ca3af; /* gray-400 */
+            color: #1f2937; /* black */
             font-weight: 700; /* bold */
             border-bottom: none;
+            transform: translateY(0);
             box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            border-radius: 0.5rem;
         }
-        /* Inactive Tab Style */
+        /* Inactive Tab Style (for Shift Mgt page) */
         .tab-btn {
-            background-color: #f3f4f6; /* gray-100 */
+            background-color: transparent;
             color: #4b5563; /* gray-600 */
             font-weight: 600; /* semibold */
-            transition: background-color 0.2s, color 0.2s;
+            transition: background-color 0.2s, color 0.2s, transform 0.2s ease-out;
+            font-size: 0.8rem; /* Made text smaller for mobile */
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
             border-bottom: none;
-            border-radius: 0.5rem 0.5rem 0 0;
+            transform: translateY(0);
+            border-radius: 0.5rem;
+            padding: 0.75rem 0.5rem; /* Adjusted padding */
         }
         .tab-btn:hover {
-            background-color: #e5e7eb; /* gray-200 */
+            background-color: #fffbeb; /* yellow-50 */
             color: #111827; /* gray-900 */
         }
         
@@ -46,10 +52,9 @@
         .accordion-header {
             cursor: pointer;
             transition: background-color 0.2s;
-            border-bottom: 1px solid #e5e7eb;
         }
         .accordion-header:hover {
-            background-color: #f9fafb; /* gray-50 */
+            background-color: #f9fafb;
         }
         
         /* Sub-Tab Styles */
@@ -77,7 +82,7 @@
             padding: 0 1.5rem;
         }
         .accordion-open .accordion-content {
-            max-height: 10000px;
+            max-height: 10000px; /* Large value */
             padding: 1.5rem;
         }
         .accordion-open .accordion-arrow {
@@ -132,14 +137,13 @@
             box-shadow: 0 0 0 2px rgba(255, 199, 44, 0.4);
         }
         
-        /* Modals */
-        .modal-bg {
+        /* Reminder Modal */
+        #reminder-modal-bg, #ai-loading-modal-bg, #ai-result-modal-bg {
             background-color: rgba(0, 0, 0, 0.5);
             transition: opacity 0.3s ease;
         }
-        .modal-box {
+        #reminder-modal, #ai-loading-modal, #ai-result-modal {
             transition: transform 0.3s ease, opacity 0.3s ease;
-            max-height: 90vh;
         }
         
         /* Alert/Notification */
@@ -191,116 +195,109 @@
             transform: translateX(26px);
         }
 
-        /* NEW: Collapsible Card */
-        .card-accordion-header {
-            cursor: pointer;
-        }
-        .card-accordion-content {
-            max-height: 1000px;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out, padding 0.3s ease-out, opacity 0.3s ease-out;
-            padding: 1.5rem; /* p-6 */
-        }
-        .card-accordion-closed .card-accordion-content {
-            max-height: 0;
-            padding-top: 0;
-            padding-bottom: 0;
-            opacity: 0;
-        }
-        .card-accordion-closed .card-accordion-arrow {
-            transform: rotate(-90deg);
-        }
-        .card-accordion-arrow {
-            transition: transform 0.3s;
+        /* --- NEW LAYOUT STYLES --- */
+        #dashboard-panel {
+            transition: width 0.3s ease;
+            /* Z-index fix for mobile layout */
+            z-index: 20; 
         }
 
-        /* NEW: Collapsible Left Dashboard Panel */
-        #dashboard-panel {
-            transition: width 0.3s ease, padding 0.3s ease, opacity 0.3s ease;
-        }
-        #checklist-panel {
+        #main-checklist-panel {
             transition: width 0.3s ease;
+            /* Sticky tabs container */
+            position: relative; 
+        }
+
+        #tab-nav-container {
+            position: sticky;
+            top: 0;
+            background-color: #f3f4f6; /* Match body bg */
+            z-index: 10;
         }
         
-        /* Styles for DESKTOP (md and up) */
+        /* Desktop-only widths */
         @media (min-width: 768px) {
-            #dashboard-panel {
-                width: 40%;
-                opacity: 1;
+            .dashboard-open #dashboard-panel {
+                width: 28rem; /* w-112 */
                 padding: 1.5rem; /* p-6 */
-                overflow-y: auto;
             }
-            #checklist-panel {
-                width: 60%;
-                overflow-y: auto;
+            .dashboard-open #main-checklist-panel {
+                width: calc(100% - 28rem);
             }
-            #dashboard-panel.collapsed {
-                width: 0%;
+
+            .dashboard-closed #dashboard-panel {
+                width: 0rem;
                 padding: 0;
-                opacity: 0;
+                overflow: hidden;
             }
-            #checklist-panel.expanded {
+            .dashboard-closed #main-checklist-panel {
                 width: 100%;
             }
         }
-        
-        /* Styles for MOBILE (default) */
-        #dashboard-panel {
-            width: 100%;
-        }
-        #checklist-panel {
-            width: 100%;
-        }
 
+        /* Collapsible Card Header */
+        .collapsible-header {
+            cursor: pointer;
+        }
+        .collapsible-arrow {
+            transition: transform 0.3s;
+        }
+        .card-collapsed .collapsible-arrow {
+            transform: rotate(-90deg);
+        }
+        .collapsible-content {
+            max-height: 2000px; /* large value */
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, padding 0.3s ease-out, opacity 0.3s ease-out;
+            padding-top: 1.5rem; /* pt-6 */
+            opacity: 1;
+        }
+        .card-collapsed .collapsible-content {
+            max-height: 0;
+            padding-top: 0;
+            opacity: 0;
+        }
     </style>
 </head>
 <body class="h-full">
     
-    <!-- Main Flex Container -->
-    <!-- On Mobile: flex-col (stacks dashboard on top) -->
-    <!-- On Desktop: md:flex-row (dashboard on left, checklists on right) -->
-    <div class="flex flex-col md:flex-row h-full">
-
-        <!-- NEW: Open Dashboard Button (Desktop Only) -->
-        <button id="open-dashboard-btn" class="hidden md:block fixed top-4 left-4 mcd-yellow hover:bg-yellow-500 text-gray-900 font-bold p-3 rounded-full shadow-lg z-20 hidden">
+    <div class="flex flex-col md:flex-row h-full w-full dashboard-open">
+        <!-- "Open" button, hidden by default, shown when panel is closed -->
+        <button id="open-dashboard-btn" class="hidden md:block fixed top-4 left-4 mcd-red text-white p-2 rounded-full shadow-lg z-30">
              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
             </svg>
         </button>
-
-        <!-- NEW: Left Dashboard Panel -->
-        <!-- On Mobile: Takes full width -->
-        <!-- On Desktop: Takes 40% width, controlled by JS -->
-        <div id="dashboard-panel" class="bg-white p-6 h-full shadow-lg">
-            
-            <!-- Panel Header -->
+        
+        <!-- Left Panel: Dashboard (Shift Plans, Details, Targets) -->
+        <aside id="dashboard-panel" class="w-full md:w-112 h-full bg-white shadow-lg overflow-y-auto p-6 flex-shrink-0 z-20">
+            <!-- Header for Dashboard -->
             <div class="flex justify-between items-center mb-6">
-                <h1 class="text-3xl md:text-4xl font-extrabold mcd-text-red">Shift Tool</h1>
-                <!-- NEW: Close Dashboard Button (Desktop Only) -->
-                <button id="close-dashboard-btn" class="hidden md:block text-gray-400 hover:text-gray-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <h1 class="text-3xl md:text-4xl font-extrabold mcd-text-red">Dashboard</h1>
+                <button id="close-dashboard-btn" class="hidden md:block p-2 text-gray-500 hover:text-gray-800">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
                     </svg>
                 </button>
             </div>
 
-            <!-- Shift Plans Card (Collapsible) -->
-            <div id="shift-plans-card" class="bg-gray-50 rounded-xl shadow-lg mb-6">
-                <div class="card-accordion-header p-4 flex items-center justify-between">
+            <!-- Card 1: Shift Plans -->
+            <div class="bg-gray-50 rounded-xl shadow-lg p-6 mb-6 collapsible-card">
+                <div class="collapsible-header flex items-center justify-between">
                     <div class="flex items-center">
-                        <svg class="card-accordion-arrow h-6 w-6 text-gray-500 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg class="collapsible-arrow h-6 w-6 text-gray-500 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                         </svg>
                         <h2 class="text-2xl font-bold mcd-text-red">Shift Plans</h2>
                     </div>
                 </div>
-                <div class="card-accordion-content">
+                <div class="collapsible-content pt-6">
                     <!-- Save Plan Section -->
-                    <div class="mb-6">
+                    <div>
                         <label for="plan-name-input" class="block text-sm font-medium text-gray-700 mb-1">Plan Name</label>
                         <input type="text" id="plan-name-input" placeholder="e.g., Opening Shift - John" class="p-3 border border-gray-300 rounded-lg task-notes w-full">
                         <p class="text-xs text-gray-500 mt-1">Make sure the "Shift Date" in the card below is correct!</p>
-                        <button id="save-plan-btn" class="mt-3 mcd-red hover:bg-red-800 text-white font-semibold py-3 px-4 rounded-lg shadow-md w-full">
+                        <button id="save-plan-btn" class="mt-4 mcd-red hover:bg-red-800 text-white font-semibold py-3 px-4 rounded-lg shadow-md w-full">
                             Save Current Plan
                         </button>
                     </div>
@@ -309,35 +306,34 @@
 
                     <!-- Load Plan Section -->
                     <div>
-                        <h3 class="text-xl font-semibold text-gray-800 mb-3">Load Plan by Date</h3>
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3">Load Plan by Date</h3>
                         <label for="plan-date-input" class="block text-sm font-medium text-gray-700 mb-1">Select Shift Date</label>
                         <input type="date" id="plan-date-input" class="p-3 border border-gray-300 rounded-lg task-notes w-full">
-                        <button id="find-plans-btn" class="mt-3 mcd-yellow hover:bg-yellow-500 text-gray-900 font-semibold py-3 px-4 rounded-lg shadow-md w-full">
+                        <button id="find-plans-btn" class="mt-4 mcd-yellow hover:bg-yellow-500 text-gray-900 font-semibold py-3 px-4 rounded-lg shadow-md w-full">
                             Find Plans
                         </button>
                     </div>
                     
                     <!-- Results Area -->
                     <div id="plan-results-container" class="mt-4">
-                        <p id="plan-results-status" class="text-gray-500 text-sm">Please select a date and click "Find Plans".</p>
-                        <!-- Results will be injected here -->
+                        <p id="plan-results-status" class="text-gray-500">Please select a date and click "Find Plans".</p>
                     </div>
                 </div>
             </div>
-
-            <!-- Shift Details Card (Collapsible) -->
-            <div id="shift-details-card" class="bg-gray-50 rounded-xl shadow-lg mb-6">
-                <div class="card-accordion-header p-4 flex items-center justify-between">
-                    <div class="flex items-center">
-                        <svg class="card-accordion-arrow h-6 w-6 text-gray-500 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            
+            <!-- Card 2: Shift Details -->
+            <div class="bg-gray-50 rounded-xl shadow-lg p-6 mb-6 collapsible-card">
+                <div class="collapsible-header flex items-center justify-between">
+                     <div class="flex items-center">
+                        <svg class="collapsible-arrow h-6 w-6 text-gray-500 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                         </svg>
                         <h2 class="text-2xl font-bold mcd-text-red">Shift Details</h2>
                     </div>
                 </div>
-                <div class="card-accordion-content">
-                    <div class="grid grid-cols-1 gap-4">
-                        <input type="text" id="shift-date" data-save="shift-date" placeholder="Date" class="p-3 border border-gray-300 rounded-lg task-notes w-full" onfocus="(this.type='date')">
+                <div class="collapsible-content pt-6">
+                    <div class="grid grid-cols-1 md:grid-cols-1 gap-4">
+                        <input type="date" id="shift-date" data-save="shift-date" placeholder="Date" class="p-3 border border-gray-300 rounded-lg task-notes w-full" onfocus="(this.type='date')">
                         <input type="text" id="shift-leader" data-save="shift-leader" placeholder="Shift Leader Name" class="p-3 border border-gray-300 rounded-lg task-notes w-full">
                         <select id="shift-time" data-save="shift-time" class="p-3 border border-gray-300 rounded-lg task-notes w-full text-gray-500">
                             <option value="" disabled selected>Select Shift</option>
@@ -349,20 +345,19 @@
                     </div>
                 </div>
             </div>
-            
-            <!-- Shift Targets Card (Collapsible) -->
-            <div id="shift-targets-card" class="bg-gray-50 rounded-xl shadow-lg mb-6">
-                <div class="card-accordion-header p-4 flex items-center justify-between">
-                    <div class="flex items-center">
-                        <svg class="card-accordion-arrow h-6 w-6 text-gray-500 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+
+            <!-- Card 3: Shift Targets -->
+            <div class="bg-gray-50 rounded-xl shadow-lg p-6 mb-6 collapsible-card">
+                 <div class="collapsible-header flex items-center justify-between">
+                     <div class="flex items-center">
+                        <svg class="collapsible-arrow h-6 w-6 text-gray-500 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                         </svg>
                         <h2 class="text-2xl font-bold mcd-text-red">Shift Targets</h2>
                     </div>
                 </div>
-                <div class="card-accordion-content">
-                    <!-- Responsive Grid: 1 col on mobile, 2 on desktop -->
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-6">
+                <div class="collapsible-content pt-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-1 gap-y-6">
                         <!-- Sales/Profit Column -->
                         <div>
                             <h3 class="text-xl font-semibold text-gray-800 mb-3">Sales / Profit</h3>
@@ -444,8 +439,7 @@
                     
                     <!-- People & Other Tasks -->
                     <hr class="my-6 border-gray-200">
-                    <!-- Responsive Grid: 1 col on mobile, 3 on desktop -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-1 gap-6">
                         <div>
                             <h3 class="text-xl font-semibold text-gray-800 mb-3">People</h3>
                             <input type="text" id="people-names" data-save="people-names" placeholder="Names..." class="p-2 border border-gray-300 rounded-lg task-notes w-full mb-2">
@@ -463,154 +457,153 @@
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- NEW: Right Checklist Panel -->
-        <!-- On Mobile: Takes full width -->
-        <!-- On Desktop: Takes 60% width, controlled by JS -->
-        <div id="checklist-panel" class="bg-gray-100 p-6 h-full">
-            <div class="max-w-7xl mx-auto">
-                <!-- Tab Navigation -->
-                <div class="bg-white rounded-xl shadow-lg mb-6 overflow-hidden">
-                    <nav class="flex flex-wrap p-2">
-                        <button class="tab-btn flex-grow text-center p-4 text-sm md:text-base" data-tab="pre-shift">
-                            1. Pre-Shift
-                        </button>
-                        <button class="tab-btn flex-grow text-center p-4 text-sm md:text-base" data-tab="during-shift">
-                            2. During Shift
-                        </button>
-                        <button class="tab-btn flex-grow text-center p-4 text-sm md:text-base" data-tab="travel-path">
-                            3. Travel Path
-                        </button>
-                        <button class="tab-btn flex-grow text-center p-4 text-sm md:text-base" data-tab="post-shift">
-                            4. Post-Shift
-                        </button>
-                    </nav>
+        </aside>
+
+        <!-- Right Panel: Checklists -->
+        <main id="main-checklist-panel" class="flex-1 h-full overflow-y-auto p-4 md:p-8">
+            <h1 class="text-3xl md:text-4xl font-extrabold mcd-text-red mb-6 hidden md:block">Shift Management Tool</h1>
+
+            <!-- Tab Navigation -->
+            <div id="tab-nav-container" class="bg-white rounded-xl shadow-lg mb-6 overflow-hidden">
+                <nav class="flex flex-wrap p-2">
+                    <button class="tab-btn flex-grow text-center" data-tab="pre-shift">
+                        1. Pre-Shift
+                    </button>
+                    <button class="tab-btn flex-grow text-center" data-tab="during-shift">
+                        2. During Shift
+                    </button>
+                    <button class="tab-btn flex-grow text-center" data-tab="travel-path">
+                        3. Travel Path
+                    </button>
+                    <button class="tab-btn flex-grow text-center" data-tab="post-shift">
+                        4. Post-Shift
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="bg-white rounded-xl shadow-lg">
+                <!-- Pre-Shift Tab -->
+                <div id="tab-pre-shift" class="tab-content hidden">
+                    <!-- Accordion Controls -->
+                    <div class="p-4 bg-gray-50 border-b border-gray-200 flex justify-end space-x-3">
+                        <button class="expand-all-btn text-sm font-medium mcd-text-red hover:underline">Expand All</button>
+                        <button class="collapse-all-btn text-sm font-medium mcd-text-red hover:underline">Collapse All</button>
+                    </div>
+                    <div id="pre-shift-accordion-container">
+                        <!-- Accordions will be injected here by JavaScript -->
+                    </div>
                 </div>
 
-                <!-- Tab Content -->
-                <div class="bg-white rounded-xl shadow-lg">
-                    <!-- Pre-Shift Tab -->
-                    <div id="tab-pre-shift" class="tab-content hidden">
-                        <!-- Accordion Controls -->
-                        <div class="p-4 bg-gray-50 border-b border-gray-200 flex justify-end space-x-3">
-                            <button class="expand-all-btn text-sm font-medium mcd-text-red hover:underline">Expand All</button>
-                            <button class="collapse-all-btn text-sm font-medium mcd-text-red hover:underline">Collapse All</button>
-                        </div>
-                        <div id="pre-shift-accordion-container">
-                            <!-- Accordions will be injected here by JavaScript -->
-                        </div>
+                <!-- During Shift Tab -->
+                <div id="tab-during-shift" class="tab-content hidden">
+                    <!-- Accordion Controls -->
+                    <div class="p-4 bg-gray-50 border-b border-gray-200 flex justify-end space-x-3">
+                        <button class="expand-all-btn text-sm font-medium mcd-text-red hover:underline">Expand All</button>
+                        <button class="collapse-all-btn text-sm font-medium mcd-text-red hover:underline">Collapse All</button>
                     </div>
-
-                    <!-- During Shift Tab -->
-                    <div id="tab-during-shift" class="tab-content hidden">
-                        <!-- Accordion Controls -->
-                        <div class="p-4 bg-gray-50 border-b border-gray-200 flex justify-end space-x-3">
-                            <button class="expand-all-btn text-sm font-medium mcd-text-red hover:underline">Expand All</button>
-                            <button class="collapse-all-btn text-sm font-medium mcd-text-red hover:underline">Collapse All</button>
-                        </div>
-                        <div id="during-shift-accordion-container">
-                            <!-- During Shift accordions will be injected here by JavaScript -->
-                        </div>
+                    <div id="during-shift-accordion-container">
+                        <!-- During Shift accordions will be injected here by JavaScript -->
+                    </div>
+                    
+                    <!-- Travel Path Focus List -->
+                    <div class="p-6 mt-6 border-t border-gray-200">
+                        <h2 class="text-2xl font-bold mcd-text-red mb-4">Travel Path Focus List</h2>
+                        <p class="text-sm text-gray-600 mb-4">Click the button to refresh the list of outstanding items from your Pre-Shift checklist. This will show all unchecked tasks or tasks with actions required.</p>
+                        <button id="refresh-travel-path-btn" class="mcd-yellow hover:bg-yellow-500 text-gray-900 font-semibold py-2 px-4 rounded-lg shadow-md mb-6">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block -ml-1 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 110 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.004 10.043a1 1 0 01-.666 1.885 7.002 7.002 0 01-2.566-11.601 1 1 0 11.666 1.885 5.002 5.002 0 007 7H5a1 1 0 110-2h5.001a1 1 0 01.996 1.113z" clip-rule="evenodd" />
+                            </svg>
+                            Refresh Focus List
+                        </button>
                         
-                        <!-- Travel Path Focus List -->
-                        <div class="p-6 mt-6 border-t border-gray-200">
-                            <h2 class="text-2xl font-bold mcd-text-red mb-4">Travel Path Focus List</h2>
-                            <p class="text-sm text-gray-600 mb-4">Click the button to refresh the list of outstanding items from your Pre-Shift checklist. This will show all unchecked tasks or tasks with actions required.</p>
-                            <button id="refresh-travel-path-btn" class="mcd-yellow hover:bg-yellow-500 text-gray-900 font-semibold py-2 px-4 rounded-lg shadow-md mb-6">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block -ml-1 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 110 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.004 10.043a1 1 0 01-.666 1.885 7.002 7.002 0 01-2.566-11.601 1 1 0 11.666 1.885 5.002 5.002 0 007 7H5a1 1 0 110-2h5.001a1 1 0 01.996 1.113z" clip-rule="evenodd" />
-                                </svg>
-                                Refresh Focus List
-                            </button>
-                            
-                            <div id="travel-path-report-container">
-                                <p class="text-gray-500">Click the "Refresh" button to generate your focus list.</p>
-                            </div>
+                        <div id="travel-path-report-container">
+                            <p class="text-gray-500">Click the "Refresh" button to generate your focus list.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Travel Path Tab -->
+                <div id="tab-travel-path" class="tab-content hidden">
+                    <!-- Travel Path Alarm -->
+                    <div class="p-6 border-b border-gray-200">
+                        <h2 class="text-2xl font-bold mcd-text-red mb-4">Travel Path Alarm</h2>
+                        <div class="flex items-center justify-between">
+                            <label for="travel-path-alarm-toggle" class="text-gray-700 font-medium text-lg">Enable 30-min Travel Path Reminder</label>
+                            <label class="switch">
+                                <input type="checkbox" id="travel-path-alarm-toggle" data-save="travel-path-alarm-toggle">
+                                <span class="slider"></span>
+                            </label>
                         </div>
                     </div>
 
-                    <!-- Travel Path Tab -->
-                    <div id="tab-travel-path" class="tab-content hidden">
-                        <!-- Travel Path Alarm -->
-                        <div class="p-6 border-b border-gray-200">
-                            <h2 class="text-2xl font-bold mcd-text-red mb-4">Travel Path Alarm</h2>
-                            <div class="flex items-center justify-between">
-                                <label for="travel-path-alarm-toggle" class="text-gray-700 font-medium text-lg">Enable 30-min Travel Path Reminder</label>
-                                <label class="switch">
-                                    <input type="checkbox" id="travel-path-alarm-toggle" data-save="travel-path-alarm-toggle">
-                                    <span class="slider"></span>
-                                </label>
-                            </div>
-                        </div>
+                    <!-- Sub-Tab Navigation -->
+                    <nav class="flex border-b border-gray-200">
+                        <button class="sub-tab-btn flex-grow p-4 text-center font-medium" data-sub-tab="checklist">
+                            Full Checklist
+                        </button>
+                        <button class="sub-tab-btn flex-grow p-4 text-center font-medium" data-sub-tab="todo">
+                            To Do List
+                        </button>
+                    </nav>
 
-                        <!-- Sub-Tab Navigation -->
-                        <nav class="flex border-b border-gray-200">
-                            <button class="sub-tab-btn flex-grow p-4 text-center font-medium" data-sub-tab="checklist">
-                                Full Checklist
-                            </button>
-                            <button class="sub-tab-btn flex-grow p-4 text-center font-medium" data-sub-tab="todo">
-                                To Do List
-                            </button>
-                        </nav>
-
-                        <!-- Sub-Tab Content: Checklist -->
-                        <div id="sub-tab-checklist" class="sub-tab-content">
-                            <!-- Accordion Controls -->
-                            <div class="p-4 bg-gray-50 border-b border-gray-200 flex justify-end space-x-3">
-                                <button class="expand-all-btn text-sm font-medium mcd-text-red hover:underline">Expand All</button>
-                                <button class="collapse-all-btn text-sm font-medium mcd-text-red hover:underline">Collapse All</button>
-                            </div>
-                            <div id="travel-path-accordion-container">
-                                <!-- Travel Path accordions will be injected here by JavaScript -->
-                            </div>
-                        </div>
-
-                        <!-- Sub-Tab Content: To Do List -->
-                        <div id="sub-tab-todo" class="sub-tab-content hidden p-6">
-                            <h2 class="text-2xl font-bold mcd-text-red mb-4">Travel Path To Do List</h2>
-                            <p class="text-sm text-gray-600 mb-4">Click the button to refresh the list of outstanding items from your Travel Path checklist. This will show all unchecked tasks or tasks with actions required.</p>
-                            <button id="refresh-travel-path-todo-btn" class="mcd-yellow hover:bg-yellow-500 text-gray-900 font-semibold py-2 px-4 rounded-lg shadow-md mb-6">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block -ml-1 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 110 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.004 10.043a1 1 0 01-.666 1.885 7.002 7.002 0 01-2.566-11.601 1 1 0 11.666 1.885 5.002 5.002 0 007 7H5a1 1 0 110-2h5.001a1 1 0 01.996 1.113z" clip-rule="evenodd" />
-                                </svg>
-                                Refresh To Do List
-                            </button>
-                            
-                            <div id="travel-path-todo-list-container">
-                                <p class="text-gray-500">Click the "Refresh" button to generate your to-do list.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Post-Shift Tab -->
-                    <div id="tab-post-shift" class="tab-content hidden">
+                    <!-- Sub-Tab Content: Checklist -->
+                    <div id="sub-tab-checklist" class="sub-tab-content">
                         <!-- Accordion Controls -->
                         <div class="p-4 bg-gray-50 border-b border-gray-200 flex justify-end space-x-3">
                             <button class="expand-all-btn text-sm font-medium mcd-text-red hover:underline">Expand All</button>
                             <button class="collapse-all-btn text-sm font-medium mcd-text-red hover:underline">Collapse All</button>
                         </div>
-                        <div id="post-shift-accordion-container">
-                            <!-- Post-Shift accordions will be injected here by JavaScript -->
+                        <div id="travel-path-accordion-container">
+                            <!-- Travel Path accordions will be injected here by JavaScript -->
                         </div>
+                    </div>
 
-                        <!-- NEW: AI Handover Summary -->
-                        <div class="p-6 mt-6 border-t border-gray-200">
-                            <h2 class="text-2xl font-bold mcd-text-red mb-4">AI Handover Summary</h2>
-                            <p class="text-sm text-gray-600 mb-4">Click the button to generate a handover summary. This will read all your entered targets, actuals, and notes from all sections to create a concise report for the next manager.</p>
-                            <button id="generate-summary-btn" class="mcd-red hover:bg-red-800 text-white font-semibold py-2 px-6 rounded-lg shadow-md mb-6">
-                                Generate Handover Summary
-                            </button>
+                    <!-- Sub-Tab Content: To Do List -->
+                    <div id="sub-tab-todo" class="sub-tab-content hidden p-6">
+                        <h2 class="text-2xl font-bold mcd-text-red mb-4">Travel Path To Do List</h2>
+                        <p class="text-sm text-gray-600 mb-4">Click the button to refresh the list of outstanding items from your Travel Path checklist. This will show all unchecked tasks or tasks with actions required.</p>
+                        <button id="refresh-travel-path-todo-btn" class="mcd-yellow hover:bg-yellow-500 text-gray-900 font-semibold py-2 px-4 rounded-lg shadow-md mb-6">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block -ml-1 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 110 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.004 10.043a1 1 0 01-.666 1.885 7.002 7.002 0 01-2.566-11.601 1 1 0 11.666 1.885 5.002 5.002 0 007 7H5a1 1 0 110-2h5.001a1 1 0 01.996 1.113z" clip-rule="evenodd" />
+                            </svg>
+                            Refresh To Do List
+                        </button>
+                        
+                        <div id="travel-path-todo-list-container">
+                            <p class="text-gray-500">Click the "Refresh" button to generate your to-do list.</p>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Post-Shift Tab -->
+                <div id="tab-post-shift" class="tab-content hidden">
+                    <!-- AI Summary Button -->
+                    <div class="p-6 border-b border-gray-200">
+                        <h2 class="text-2xl font-bold mcd-text-red mb-4">AI Handover Summary</h2>
+                        <p class="text-sm text-gray-600 mb-4">Click the button to generate a complete handover summary based on all the data you've entered for this shift (KPIs, notes, etc.).</p>
+                        <button id="generate-summary-btn" class="mcd-yellow hover:bg-yellow-500 text-gray-900 font-semibold py-3 px-6 rounded-lg shadow-md w-full md:w-auto">
+                            Generate Handover Summary
+                        </button>
+                    </div>
+
+                    <!-- Accordion Controls -->
+                    <div class="p-4 bg-gray-50 border-b border-gray-200 flex justify-end space-x-3">
+                        <button class="expand-all-btn text-sm font-medium mcd-text-red hover:underline">Expand All</button>
+                        <button class="collapse-all-btn text-sm font-medium mcd-text-red hover:underline">Collapse All</button>
+                    </div>
+                    <div id="post-shift-accordion-container">
+                        <!-- Post-Shift accordions will be injected here by JavaScript -->
                     </div>
                 </div>
             </div>
-        </div>
-    </div> <!-- End Main Flex Container -->
-
+        </main>
+    </div>
+    
     <!-- Modals and Alerts -->
-    <div id="reminder-modal-bg" class="modal-bg fixed inset-0 hidden items-center justify-center p-4 z-40 opacity-0">
-        <div id="reminder-modal" class="modal-box bg-white rounded-lg shadow-xl p-6 w-full max-w-md transform scale-95 opacity-0">
+    <div id="reminder-modal-bg" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50 opacity-0">
+        <div id="reminder-modal" class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md transform scale-95 opacity-0">
             <h3 class="text-xl font-bold mcd-text-red mb-4">Set Reminder</h3>
             <p id="reminder-task-name" class="text-gray-700 mb-4"></p>
             <label for="reminder-time" class="block text-sm font-medium text-gray-700 mb-2">Remind me in (minutes):</label>
@@ -636,25 +629,24 @@
             </div>
         </div>
     </div>
-    
-    <!-- AI Summary Loading Modal -->
-    <div id="ai-loading-modal-bg" class="modal-bg fixed inset-0 hidden items-center justify-center p-4 z-50 opacity-0">
-        <div class="modal-box bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
-            <div class="flex items-center">
-                <svg class="animate-spin h-6 w-6 mcd-text-red mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <h3 class="text-lg font-bold text-gray-800">Generating AI Summary...</h3>
+
+    <!-- AI Loading Modal -->
+    <div id="ai-loading-modal-bg" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50 opacity-0">
+        <div id="ai-loading-modal" class="bg-white rounded-lg shadow-xl p-8 w-full max-w-md transform scale-95 opacity-0 text-center">
+            <h3 class="text-xl font-bold mcd-text-red mb-4">Generating Summary</h3>
+            <p class="text-gray-700 mb-6">The AI is reading your shift data. Please wait a moment...</p>
+            <!-- Simple spinner -->
+            <div class="flex justify-center items-center">
+                <div class="w-12 h-12 border-4 border-t-4 border-gray-200 border-t-yellow-400 rounded-full animate-spin"></div>
             </div>
-            <p class="text-gray-600 mt-2 text-sm">Please wait, this can take up to 30 seconds.</p>
         </div>
     </div>
-    
-    <!-- AI Summary Result Modal -->
-    <div id="ai-result-modal-bg" class="modal-bg fixed inset-0 hidden items-center justify-center p-4 z-50 opacity-0">
-        <div id="ai-result-modal" class="modal-box bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl transform scale-95 opacity-0">
-            <div class="flex justify-between items-center mb-4">
+
+    <!-- AI Result Modal -->
+    <div id="ai-result-modal-bg" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50 opacity-0">
+        <div id="ai-result-modal" class="bg-white rounded-lg shadow-xl p-0 w-full max-w-lg transform scale-95 opacity-0 flex flex-col" style="max-height: 90vh;">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center p-6 border-b border-gray-200">
                 <h3 class="text-2xl font-bold mcd-text-red">AI Handover Summary</h3>
                 <button id="close-ai-result-btn" class="text-gray-400 hover:text-gray-600">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -662,12 +654,14 @@
                     </svg>
                 </button>
             </div>
-            <div id="ai-summary-content" class="bg-gray-100 rounded-lg p-4 max-h-96 overflow-y-auto whitespace-pre-wrap">
-                <!-- AI summary will be injected here -->
+            <!-- Modal Body (Scrollable) -->
+            <div class="p-6 flex-1 overflow-y-auto">
+                <pre id="ai-summary-output" class="text-gray-800 whitespace-pre-wrap" style="font-family: 'Poppins', sans-serif; font-size: 0.95rem; line-height: 1.6;"></pre>
             </div>
-            <div class="flex justify-end space-x-3 mt-6">
+            <!-- Modal Footer -->
+            <div class="flex justify-end space-x-3 p-6 bg-gray-50 border-t border-gray-200">
                 <button id="copy-summary-btn" class="mcd-yellow hover:bg-yellow-500 text-gray-900 font-semibold py-2 px-4 rounded-lg shadow-md">Copy to Clipboard</button>
-                <button id="close-ai-result-btn-bottom" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded-lg shadow-md">Close</button>
+                <button id="close-ai-result-btn-2" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded-lg shadow-md">Close</button>
             </div>
         </div>
     </div>
@@ -678,7 +672,6 @@
         import { 
             getAuth, 
             signInAnonymously, 
-            signInWithCustomToken, 
             onAuthStateChanged 
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { 
@@ -719,43 +712,19 @@
         let app, db, auth;
         let userId = 'anonymous';
         let isAuthReady = false;
-        let plansUnsubscribe = null; // To hold the onSnapshot listener
-
-        // --- Data Persistence Keys ---
-        const shiftDataKey = 'shiftAppData'; // Key for local storage fallbacks
         
+        // --- Data Persistence Keys ---
+        const localSettingsKey = 'shiftAppLocalSettings';
+
         // --- NEW: Shift Plan Elements ---
         const savePlanBtn = document.getElementById('save-plan-btn');
         const planNameInput = document.getElementById('plan-name-input');
-        const findPlansBtn = document.getElementById('find-plans-btn');
-        const planDateInput = document.getElementById('plan-date-input');
-        const planResultsContainer = document.getElementById('plan-results-container');
-        const planResultsStatus = document.getElementById('plan-results-status');
-        
-        // --- NEW: Collapsible Card Elements ---
-        const cardHeaders = document.querySelectorAll('.card-accordion-header');
-
-        // --- NEW: Collapsible Dashboard Panel Elements ---
-        const dashboardPanel = document.getElementById('dashboard-panel');
-        const checklistPanel = document.getElementById('checklist-panel');
-        const openDashboardBtn = document.getElementById('open-dashboard-btn');
-        const closeDashboardBtn = document.getElementById('close-dashboard-btn');
-
-        // --- NEW: AI Summary Modal Elements ---
-        const generateSummaryBtn = document.getElementById('generate-summary-btn');
-        const loadingModal = document.getElementById('ai-loading-modal-bg');
-        const resultModal = document.getElementById('ai-result-modal-bg');
-        const resultModalBox = document.getElementById('ai-result-modal');
-        const summaryContent = document.getElementById('ai-summary-content');
-        const closeResultBtn = document.getElementById('close-ai-result-btn');
-        const closeResultBtnBottom = document.getElementById('close-ai-result-btn-bottom');
-        const copySummaryBtn = document.getElementById('copy-summary-btn');
 
         // --- NEW: Firestore Shift Plans ---
         function initShiftPlans() {
             if (!isAuthReady || !db) return; // Wait for auth
 
-            const plansCollectionPath = `/shift_plans`;
+            const plansCollectionPath = `shift_plans`;
             const plansCollection = collection(db, plansCollectionPath);
 
             // 1. Save Current Plan
@@ -787,16 +756,17 @@
                         const docRef = await addDoc(plansCollection, {
                             name: planName,
                             author: author,
-                            shiftDate: shiftDate, // Queryable date
-                            data: currentData, // Save the entire form object
+                            shiftDate: shiftDate,
+                            data: currentData,
                             createdAt: serverTimestamp()
                         });
                         planNameInput.value = '';
-                        planResultsStatus.textContent = `Plan "${planName}" saved!`;
-                        console.log("Plan saved with ID:", docRef.id);
+                        // Update status
+                        const statusEl = document.getElementById('plan-results-status');
+                        if(statusEl) statusEl.textContent = `Successfully saved "${planName}"!`;
+                        if(planResultsContainer) planResultsContainer.innerHTML = '';
                     } catch (error) {
                         console.error("Error saving plan:", error);
-                        planResultsStatus.textContent = "Error saving plan.";
                     } finally {
                         savePlanBtn.disabled = false;
                         savePlanBtn.textContent = 'Save Current Plan';
@@ -804,7 +774,12 @@
                 });
             }
 
-            // 2. Find Plans by Date
+            // 2. Calendar-based Plan Finder
+            const findPlansBtn = document.getElementById('find-plans-btn');
+            const planDateInput = document.getElementById('plan-date-input');
+            const planResultsContainer = document.getElementById('plan-results-container');
+            const planResultsStatus = document.getElementById('plan-results-status');
+
             if (findPlansBtn) {
                 findPlansBtn.addEventListener('click', async () => {
                     const selectedDate = planDateInput.value;
@@ -814,7 +789,7 @@
                     }
                     
                     planResultsStatus.textContent = 'Searching...';
-                    planResultsContainer.innerHTML = ''; // Clear old results
+                    planResultsContainer.innerHTML = '';
 
                     try {
                         const q = query(plansCollection, where("shiftDate", "==", selectedDate));
@@ -825,19 +800,16 @@
                             return;
                         }
 
-                        planResultsStatus.textContent = ''; // Clear status
+                        planResultsStatus.textContent = '';
                         
                         let plansHtml = '<div class="flex flex-col space-y-2">';
                         querySnapshot.forEach((doc) => {
                             const plan = doc.data();
-                            const timestamp = plan.createdAt?.toDate() 
-                                ? plan.createdAt.toDate().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-                                : '';
                             plansHtml += `
                                 <button class="load-plan-btn text-left p-3 bg-gray-100 hover:bg-gray-200 rounded-lg flex justify-between items-center" data-doc-id="${doc.id}">
                                     <span>
                                         <span class="font-semibold">${plan.name}</span>
-                                        <span class="text-sm text-gray-600"> (by ${plan.author || 'Manager'} at ${timestamp})</span>
+                                        <span class="text-sm text-gray-600"> (by ${plan.author || 'Manager'})</span>
                                     </span>
                                     <span class="text-sm mcd-text-red font-semibold">Load</span>
                                 </button>
@@ -848,16 +820,16 @@
 
                     } catch (error) {
                         console.error("Error finding plans:", error);
-                        planResultsStatus.textContent = 'Error finding plans. Check console and security rules.';
+                        planResultsStatus.textContent = 'Error finding plans.';
                     }
                 });
             }
 
-            // 3. Load Selected Plan (Event delegation)
+            // 3. Event listener for the dynamically created "Load" buttons
             if (planResultsContainer) {
                 planResultsContainer.addEventListener('click', async (e) => {
                     const loadButton = e.target.closest('.load-plan-btn');
-                    if (!loadButton) return; 
+                    if (!loadButton) return;
 
                     const docId = loadButton.dataset.docId;
                     if (!docId) return;
@@ -890,7 +862,7 @@
             }
         }
 
-        // --- SCRIPT CONTENT FROM ORIGINAL APP ---
+        // --- SCRIPT CONTENT COPIED FROM shift_management_app.html ---
         
         const preShiftTasks = [
             {
@@ -1220,7 +1192,7 @@
             }
         ];
 
-        // --- Utility Functions ---
+        // --- Utility Functions (for Shift Mgt) ---
         function createSlug(text) {
             if (typeof text !== 'string') { return ''; }
             return text.toLowerCase()
@@ -1338,33 +1310,17 @@
                 }
             });
 
-            const closeModal = (modalToClose) => {
-                if (!modalToClose) modalToClose = modalBg;
-                modalToClose.classList.add('opacity-0');
-                const modalBox = modalToClose.querySelector('.modal-box');
-                if (modalBox) modalBox.classList.add('scale-95', 'opacity-0');
-                
+            const closeModal = () => {
+                modalBg.classList.add('opacity-0');
+                modal.classList.add('scale-95', 'opacity-0');
                 setTimeout(() => {
-                    modalToClose.classList.add('hidden');
-                    if (modalToClose.id !== 'reminder-modal-bg') {
-                         modalToClose.classList.remove('flex');
-                    }
+                    modalBg.classList.add('hidden');
+                    modalBg.classList.remove('flex');
                 }, 300);
             };
-            
-            const openModal = (modalToOpen) => {
-                if (!modalToOpen) return;
-                modalToOpen.classList.remove('hidden');
-                modalToOpen.classList.add('flex');
-                const modalBox = modalToOpen.querySelector('.modal-box');
-                setTimeout(() => {
-                    modalToOpen.classList.remove('opacity-0');
-                    if(modalBox) modalBox.classList.remove('scale-95', 'opacity-0');
-                }, 10);
-            }
 
-            if (cancelReminderBtn) cancelReminderBtn.addEventListener('click', () => closeModal(modalBg));
-            if (modalBg) modalBg.addEventListener('click', (e) => { if (e.target === modalBg) closeModal(modalBg); });
+            if (cancelReminderBtn) cancelReminderBtn.addEventListener('click', closeModal);
+            if (modalBg) modalBg.addEventListener('click', (e) => { if (e.target === modalBg) closeModal(); });
 
             function stopTravelPathTimer() {
                 if (travelPathTimerId) {
@@ -1376,21 +1332,23 @@
 
             function startTravelPathTimer() {
                 stopTravelPathTimer();
+                // Function to run the alarm
                 function runAlarm() {
-                    // Check the *live* toggle state, not saved data
-                    if (travelPathAlarm.checked) {
+                    const isChecked = document.getElementById('travel-path-alarm-toggle')?.checked;
+                    if (isChecked) {
                         console.log("Firing 30-min Travel Path Notification");
                         new Notification("McDonald's Shift Manager", {
                             body: "Time to do your 30-minute travel path!",
                             icon: "https://placehold.co/192x192/c00000/ffc72c?text=M"
                         });
-                        travelPathTimerId = setTimeout(runAlarm, 30 * 60 * 1000);
+                        // Reschedule the next alarm
+                        travelPathTimerId = setTimeout(runAlarm, 30 * 60 * 1000); // 30 minutes
                     } else {
                         stopTravelPathTimer();
                     }
                 }
                 console.log("Travel Path Timer started (30 min).");
-                travelPathTimerId = setTimeout(runAlarm, 30 * 60 * 1000);
+                travelPathTimerId = setTimeout(runAlarm, 30 * 60 * 1000); // 30 minutes
             }
 
             if (setReminderBtn) {
@@ -1404,7 +1362,7 @@
                     }
                     reminderTimeInput.classList.remove('border-red-500');
                     setTimeout(() => { showAlert(taskToRemind); }, minutes * 60 * 1000);
-                    closeModal(modalBg);
+                    closeModal();
                 });
             }
 
@@ -1447,10 +1405,20 @@
                     if (travelPathAlarm.disabled) return;
                     if (travelPathAlarm.checked) {
                         if (Notification.permission === "granted") {
+                            // NEW: Send test notification
+                            new Notification("McDonald's Shift Manager", {
+                                body: "Travel Path Alarm ON. You'll be reminded every 30 minutes.",
+                                icon: "https://placehold.co/192x192/c00000/ffc72c?text=M"
+                            });
                             startTravelPathTimer();
                         } else { 
                             Notification.requestPermission().then(permission => {
                                 if (permission === "granted") {
+                                    // NEW: Send test notification
+                                    new Notification("McDonald's Shift Manager", {
+                                        body: "Travel Path Alarm ON. You'll be reminded every 30 minutes.",
+                                        icon: "https://placehold.co/192x192/c00000/ffc72c?text=M"
+                                    });
                                     startTravelPathTimer();
                                 } else {
                                     console.warn("User denied notification permission.");
@@ -1462,51 +1430,6 @@
                     } else {
                         stopTravelPathTimer();
                     }
-                });
-            }
-            
-            // --- AI Summary Modal Logic ---
-            if (generateSummaryBtn) {
-                generateSummaryBtn.addEventListener('click', async () => {
-                    openModal(loadingModal);
-                    try {
-                        const summary = await handleGenerateSummary();
-                        summaryContent.textContent = summary;
-                        openModal(resultModal);
-                    } catch (error) {
-                        console.error("Error generating summary:", error);
-                        summaryContent.textContent = `Error generating summary: ${error.message}`;
-                        openModal(resultModal);
-                    } finally {
-                        closeModal(loadingModal);
-                    }
-                });
-            }
-
-            if (closeResultBtn) closeResultBtn.addEventListener('click', () => closeModal(resultModal));
-            if (closeResultBtnBottom) closeResultBtnBottom.addEventListener('click', () => closeModal(resultModal));
-            if (resultModal) resultModal.addEventListener('click', (e) => { if (e.target === resultModal) closeModal(resultModal); });
-            
-            if (copySummaryBtn) {
-                copySummaryBtn.addEventListener('click', () => {
-                    const textToCopy = summaryContent.textContent;
-                    
-                    // A simple textarea-based copy for max compatibility in iframes
-                    const textArea = document.createElement("textarea");
-                    textArea.value = textToCopy;
-                    textArea.style.position = "fixed";  //hidden
-                    textArea.style.left = "-9999px";
-                    document.body.appendChild(textArea);
-                    textArea.focus();
-                    textArea.select();
-                    try {
-                        document.execCommand('copy');
-                        copySummaryBtn.textContent = 'Copied!';
-                        setTimeout(() => { copySummaryBtn.textContent = 'Copy to Clipboard'; }, 2000);
-                    } catch (err) {
-                        console.error('Failed to copy text: ', err);
-                    }
-                    document.body.removeChild(textArea);
                 });
             }
         }
@@ -1524,6 +1447,7 @@
                     
                     if (diffOutput) {
                         diffOutput.textContent = diff.toFixed(0);
+                        // This logic is generic; AI summary has the specific logic
                         if (diff < 0) {
                             diffOutput.classList.remove('text-green-600');
                             diffOutput.classList.add('text-red-600');
@@ -1538,7 +1462,6 @@
                 
                 if (targetInput) targetInput.addEventListener('input', calculateDiff);
                 if (actualInput) actualInput.addEventListener('input', calculateDiff);
-                calculateDiff(); // Run on load
             });
         }
         
@@ -1696,7 +1619,6 @@
                 });
             });
 
-            // Set default sub-tab
             const defaultSubTab = tabContainer.querySelector('.sub-tab-btn[data-sub-tab="checklist"]');
             const defaultSubTabContent = tabContainer.querySelector('#sub-tab-checklist');
             if(defaultSubTab) defaultSubTab.classList.add('active-sub-tab');
@@ -1705,12 +1627,8 @@
 
         // --- NEW: FIRESTORE SHIFT MANAGEMENT FUNCTIONS ---
 
-        /**
-         * Clears all fields in the shift management form.
-         */
         function clearShiftForm() {
-            // Clear all [data-save] inputs
-            document.querySelectorAll('[data-save]').forEach(input => {
+            document.querySelectorAll('#dashboard-panel [data-save]').forEach(input => {
                 if (input.type === 'checkbox' || input.type === 'radio') {
                     input.checked = false;
                 } else {
@@ -1718,28 +1636,23 @@
                 }
             });
             
-            // Clear all task checkboxes
-            document.querySelectorAll('.task-checkbox').forEach(box => {
+            document.querySelectorAll('#main-checklist-panel .task-checkbox').forEach(box => {
                 box.checked = false;
             });
             
-            // Clear all task notes
-            document.querySelectorAll('.task-notes').forEach(note => {
+            document.querySelectorAll('#main-checklist-panel .task-notes').forEach(note => {
                 note.value = '';
             });
 
-            // Reset target diffs
-            setupTargetCalculations();
+            document.querySelectorAll('.diff-output').forEach(diff => {
+                diff.textContent = '0';
+                diff.classList.remove('text-red-600', 'text-green-600');
+            });
         }
 
-        /**
-         * Scrapes all data from the form into a single object.
-         * @returns {object} The complete shiftData object.
-         */
         function scrapeDataFromForm() {
             const shiftData = {};
 
-            // Get all [data-save] inputs
             document.querySelectorAll('[data-save]').forEach(input => {
                 const key = input.dataset.save;
                 if (input.type === 'checkbox') {
@@ -1749,17 +1662,14 @@
                 }
             });
             
-            // Get all task checkboxes
             document.querySelectorAll('.task-checkbox').forEach(box => {
                 const key = `check-${box.dataset.taskId}`;
                 shiftData[key] = box.checked;
             });
             
-            // Get all task notes
             document.querySelectorAll('.task-notes').forEach(note => {
-                // Check for data-save first, fallback to dynamic id
-                const key = note.dataset.save || `notes-${note.dataset.taskId}`;
-                if (key && note.dataset.taskId) { // Ensure key is valid and not a general note
+                const key = `notes-${note.dataset.taskId}`;
+                if (key && note.value) { // Only save if there's a note
                     shiftData[key] = note.value;
                 }
             });
@@ -1767,20 +1677,14 @@
             return shiftData;
         }
 
-        /**
-         * Populates the entire form from a shiftData object.
-         * @param {object} data - The shiftData object from Firestore.
-         */
         function populateFormWithData(data) {
             if (!data) {
                 console.warn("No data provided to populate form.");
                 return;
             }
             
-            // Clear the form *before* populating
             clearShiftForm();
 
-            // Set all [data-save] inputs
             document.querySelectorAll('[data-save]').forEach(input => {
                 const key = input.dataset.save;
                 if (data[key] !== undefined) {
@@ -1789,221 +1693,291 @@
                     } else {
                         input.value = data[key];
                     }
-                    // Trigger input event for target calculations
                     if (input.classList.contains('target-input') || input.classList.contains('actual-input')) {
                         input.dispatchEvent(new Event('input'));
                     }
-                    // Trigger change for alarm toggle
                     if (input.id === 'travel-path-alarm-toggle') {
                          input.dispatchEvent(new Event('change'));
                     }
                 }
             });
             
-            // Set all task checkboxes
             document.querySelectorAll('.task-checkbox').forEach(box => {
                 const key = `check-${box.dataset.taskId}`;
                 box.checked = data[key] === true;
             });
             
-            // Set all task notes
             document.querySelectorAll('.task-notes').forEach(note => {
-                const key = note.dataset.save || `notes-${note.dataset.taskId}`;
-                if (key && data[key] !== undefined && note.dataset.taskId) {
+                const key = `notes-${note.dataset.taskId}`;
+                if (key && data[key] !== undefined) {
                     note.value = data[key];
                 }
             });
         }
-        
-        /**
-         * NEW: AI Handover Summary Generation
-         */
-        async function handleGenerateSummary() {
-            console.log("Generating summary...");
-            const data = scrapeDataFromForm();
-            
-            // 1. Get Shift Info
-            const shiftLeader = data['shift-leader'] || 'N/A';
-            const shiftTime = data['shift-time'] ? (data['shift-time'].charAt(0).toUpperCase() + data['shift-time'].slice(1) + ' Shift') : 'N/A';
-            
-            // 2. Get KPI Data
-            const kpis = [
-                { name: 'Sales', target: data['target-sales'], actual: data['actual-sales'] },
-                { name: 'Guest Count (GC)', target: data['target-gc'], actual: data['actual-gc'] },
-                { name: 'Average Check (AC)', target: data['target-ac'], actual: data['actual-ac'] },
-                { name: 'Crew Labor', target: data['target-crew-labor'], actual: data['actual-crew-labor'] },
-                { name: 'Raw Waste (RW)', target: data['target-rw'], actual: data['actual-rw'] },
-                { name: 'OEPE', target: data['target-oepe'], actual: data['actual-oepe'] },
-                { name: 'Order Prep', target: data['target-opt'], actual: data['actual-opt'] },
-                { name: 'Receipt to Present (R2P)', target: data['target-r2p'], actual: data['actual-r2p'] },
-                { name: 'Customer Feedback (CFS)', target: data['target-cfs'], actual: data['actual-cfs'] }
-            ].filter(k => k.target || k.actual); // Only include KPIs with data
 
-            // 3. Get All Notes
-            const allNotes = [];
-            document.querySelectorAll('.task-notes').forEach(note => {
-                if (note.value && note.dataset.taskId) {
-                    const label = note.closest('.task-item').querySelector('label');
+        // --- NEW: AI SUMMARY FUNCTIONS ---
+        const generateSummaryBtn = document.getElementById('generate-summary-btn');
+        const loadingModalBg = document.getElementById('ai-loading-modal-bg');
+        const loadingModal = document.getElementById('ai-loading-modal');
+        const resultModalBg = document.getElementById('ai-result-modal-bg');
+        const resultModal = document.getElementById('ai-result-modal');
+        const aiSummaryOutput = document.getElementById('ai-summary-output');
+        const closeResultBtn = document.getElementById('close-ai-result-btn');
+        const closeResultBtn2 = document.getElementById('close-ai-result-btn-2');
+        const copySummaryBtn = document.getElementById('copy-summary-btn');
+
+        function showLoadingModal() {
+            loadingModalBg.classList.remove('hidden');
+            loadingModalBg.classList.add('flex');
+            setTimeout(() => {
+                loadingModalBg.classList.remove('opacity-0');
+                loadingModal.classList.remove('scale-95', 'opacity-0');
+            }, 10);
+        }
+
+        function hideLoadingModal() {
+            loadingModalBg.classList.add('opacity-0');
+            loadingModal.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                loadingModalBg.classList.add('hidden');
+                loadingModalBg.classList.remove('flex');
+            }, 300);
+        }
+
+        function showResultModal(text) {
+            aiSummaryOutput.textContent = text;
+            resultModalBg.classList.remove('hidden');
+            resultModalBg.classList.add('flex');
+            setTimeout(() => {
+                resultModalBg.classList.remove('opacity-0');
+                resultModal.classList.remove('scale-95', 'opacity-0');
+            }, 10);
+        }
+
+        function hideResultModal() {
+            resultModalBg.classList.add('opacity-0');
+            resultModal.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                resultModalBg.classList.add('hidden');
+                resultModalBg.classList.remove('flex');
+            }, 300);
+        }
+
+        if (generateSummaryBtn) {
+            generateSummaryBtn.addEventListener('click', handleGenerateSummary);
+        }
+        if (closeResultBtn) closeResultBtn.addEventListener('click', hideResultModal);
+        if (closeResultBtn2) closeResultBtn2.addEventListener('click', hideResultModal);
+        if (copySummaryBtn) copySummaryBtn.addEventListener('click', () => {
+            const textToCopy = aiSummaryOutput.textContent;
+            // Use fallback for clipboard
+            try {
+                const textArea = document.createElement("textarea");
+                textArea.value = textToCopy;
+                textArea.style.position = "fixed"; // prevent scrolling
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                copySummaryBtn.textContent = 'Copied!';
+                setTimeout(() => { copySummaryBtn.textContent = 'Copy to Clipboard'; }, 2000);
+            } catch (err) {
+                console.error('Fallback: Oops, unable to copy', err);
+            }
+        });
+
+        async function handleGenerateSummary() {
+            showLoadingModal();
+
+            // 1. Scrape data
+            const shiftLeader = document.getElementById('shift-leader').value || 'Manager';
+            const shiftTime = document.getElementById('shift-time').value || 'Shift';
+            
+            const kpis = {};
+            document.querySelectorAll('.target-row').forEach(row => {
+                const label = row.querySelector('label').textContent;
+                const target = row.querySelector('.target-input').value;
+                const actual = row.querySelector('.actual-input').value;
+                if(target || actual) {
+                    kpis[label] = { target, actual };
+                }
+            });
+
+            const notes = [];
+            document.querySelectorAll('.task-notes').forEach(input => {
+                if (input.value && input.dataset.taskId) {
+                    const label = document.querySelector(`label[for="check-${input.dataset.taskId}"]`);
                     if (label) {
-                        allNotes.push({ task: label.textContent, note: note.value });
+                        notes.push({
+                            task: label.textContent,
+                            note: input.value
+                        });
                     }
                 }
             });
-            
-            // 4. Get Other Notes
-            const otherNotes = [
-                { title: 'People (Names)', note: data['people-names'] },
-                { title: 'People (Actual)', note: data['people-actual'] },
-                { title: 'PM/BM Tasks (FUSOC)', note: data['tasks-fusoc'] },
-                { title: 'PM/BM Tasks (PR/WR)', note: data['tasks-prwr'] },
-                { title: 'Other Tasks', note: data['tasks-others'] }
-            ].filter(n => n.note);
 
-            // 5. Build the Prompt
-            let userPrompt = `Handover Summary for: ${shiftLeader} (${shiftTime})\n\n`;
-            
-            userPrompt += "--- Key Performance (KPIs) ---\n";
-            if (kpis.length > 0) {
-                kpis.forEach(k => {
-                    userPrompt += `${k.name}: Target=${k.target || 'N/A'}, Actual=${k.actual || 'N/A'}\n`;
-                });
-            } else {
-                userPrompt += "No KPI data entered.\n";
-            }
-            
-            userPrompt += "\n--- Key Notes from Checklists ---\n";
-            if (allNotes.length > 0) {
-                allNotes.forEach(n => {
-                    userPrompt += `Task: ${n.task}\nNote: ${n.note}\n\n`;
-                });
-            } else {
-                userPrompt += "No actions or notes logged from checklists.\n";
-            }
-            
-            userPrompt += "\n--- Other Shift Notes ---\n";
-            if (otherNotes.length > 0) {
-                 otherNotes.forEach(n => {
-                    userPrompt += `${n.title}: ${n.note}\n`;
-                });
-            } else {
-                userPrompt += "No other shift notes provided.\n";
-            }
+            const otherTasks = {
+                "People (Names)": document.getElementById('people-names').value,
+                "People (Actual)": document.getElementById('people-actual').value,
+                "FUSOC": document.getElementById('tasks-fusoc').value,
+                "PR/WR": document.getElementById('tasks-prwr').value,
+                "Other Notes": document.getElementById('tasks-others').value,
+            };
 
-            const systemPrompt = `You are a helpful assistant for a McDonald's Shift Manager. Your task is to take a raw data dump from a shift and format it into a clean, professional, plain-text handover summary for the next manager.
+            // 2. Create Prompt
+            const systemPrompt = `
+You are an expert McDonald's Shift Manager writing a handover summary.
+Your goal is to be professional, clean, and highly organized.
+ONLY use plain text.
+DO NOT use Markdown (like **, #, or *).
+Format lists using a simple dash (-).
 
-            **CRITICAL FORMATTING RULES:**
-            - **DO NOT** use Markdown (no asterisks '*', no '##', no tables with '|---').
-            - Use simple dashes ('- ') for bullet points.
-            - Use clear headings for sections (e.g., "Key Performance (KPIs)", "Maintenance & Equipment", "People & Crew").
-            - Be concise.
+Here are the metric rules:
+- Sales, GC, AC: Higher is better.
+- Crew Labor: Lower is better.
+- RW (Raw Waste): Lower is better.
+- OEPE, Order Prep, R2P: These are *times*. Lower is better.
+- CFS: This is a *count*. Higher is better.
 
-            **CRITICAL BUSINESS LOGIC:**
-            - **Sales, GC, AC, CFS:** Higher is better. "Above Target" is GOOD.
-            - **Crew Labor, RW (Raw Waste), OEPE, Order Prep, R2P:** Lower is better. "Below Target" is GOOD. "Above Target" is a PROBLEM.
-            
-            **YOUR TASK:**
-            Analyze the following data and generate the summary. Identify key successes, but most importantly, highlight all problems (like high waste or slow times) and required actions (from the notes) so the next manager knows what to focus on.
-            
-            **EXAMPLE OUTPUT:**
+Structure your response like this:
 
-            Handover Summary: John (Opening Shift)
-            
-            Key Performance (KPIs)
-            - Sales: Finished Above Target (Actual: 10200, Target: 10000)
-            - Raw Waste (RW): Finished Above Target (Actual: 15, Target: 10) - PROBLEM
-            - OEPE: Finished Below Target (Actual: 110, Target: 120) - GOOD
-            - Order Prep: Finished Above Target (Actual: 65, Target: 50) - PROBLEM
+Handover Summary: [Manager Name] ([Shift Type])
 
-            Maintenance & Equipment
-            - Task: Fryer 3 temp fluctuating
-            - Note: Logged for maintenance, please monitor.
-            
-            People & Crew
-            - People (Names): Mark, Jane, Tom
-            - People (Actual): Mark, Jane
-            - Note: Tom called out sick.
-            `;
+Shift Highlights
+- [One or two key positive takeaways from the shift]
 
+Key Performance (KPIs)
+- [Analyze the KPIs. Mention if they were Above, Below, or On Target based on the rules.]
+- [Example: Sales finished strong, finishing Above Target.]
+- [Example: Raw Waste (RW) was high, finishing Above Target.]
+- [Example: OEPE was fast, finishing Below Target (e.g., 100s vs 120s target).]
+- [Example: Order Prep was slow, finishing Above Target (e.g., 60s vs 50s target).]
+
+Critical Focus / Action Items
+- [List all tasks that had notes/actions required.]
+- [Example: - Outside Restaurant: Drive Thru lane was dirty.]
+- [Example: - Production Area: Fryer 3 temp was fluctuating.]
+
+Other Notes
+- [Summarize the People, FUSOC, and Other notes.]
+`;
+
+            let userQuery = "Please generate a handover summary for the following shift data:\n";
+            userQuery += `Manager: ${shiftLeader}, Shift: ${shiftTime}\n`;
+            userQuery += "KPIs (Label: {Target, Actual}):\n" + JSON.stringify(kpis, null, 2) + "\n";
+            userQuery += "Tasks with Notes:\n" + JSON.stringify(notes, null, 2) + "\n";
+            userQuery += "Other Task Notes:\n" + JSON.stringify(otherTasks, null, 2);
+
+            // 3. Call API
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${geminiApiKey}`;
-
+            
             const payload = {
-                contents: [{ parts: [{ text: userPrompt }] }],
+                contents: [{ parts: [{ text: userQuery }] }],
                 systemInstruction: {
                     parts: [{ text: systemPrompt }]
                 },
             };
-            
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
 
-            if (!response.ok) {
-                const errorBody = await response.json();
-                console.error("API Error Response:", errorBody);
-                throw new Error(`API Error ${response.status}: ${errorBody.error?.message || response.statusText}`);
-            }
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
 
-            const result = await response.json();
-            const candidate = result.candidates?.[0];
-
-            if (candidate && candidate.content?.parts?.[0]?.text) {
-                return candidate.content.parts[0].text;
-            } else {
-                console.warn("AI response was empty or malformed:", result);
-                throw new Error("The AI returned an empty or invalid response.");
-            }
-        }
-        
-        // --- NEW: Collapsible Card Logic ---
-        function setupCollapsibleCards() {
-            cardHeaders.forEach(header => {
-                const card = header.closest('.bg-gray-50'); // The card element
-                const cardId = card.id;
-                
-                // Check local storage
-                const isClosed = localStorage.getItem(cardId) === 'closed';
-                if (isClosed) {
-                    card.classList.add('card-accordion-closed');
+                if (!response.ok) {
+                    const errorBody = await response.json();
+                    throw new Error(`API Error ${response.status}: ${errorBody.error?.message || response.statusText}`);
                 }
 
-                header.addEventListener('click', () => {
-                    card.classList.toggle('card-accordion-closed');
-                    // Save state
-                    if (card.classList.contains('card-accordion-closed')) {
-                        localStorage.setItem(cardId, 'closed');
-                    } else {
-                        localStorage.setItem(cardId, 'open');
-                    }
-                });
+                const result = await response.json();
+                const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                if (text) {
+                    hideLoadingModal();
+                    showResultModal(text);
+                } else {
+                    throw new Error("No text returned from AI.");
+                }
+            } catch (error) {
+                console.error("Error generating summary:", error);
+                hideLoadingModal();
+                showResultModal(`Error generating summary: ${error.message}`);
+            }
+        }
+
+        // --- NEW: COLLAPSIBLE CARD LOGIC ---
+        function setupCollapsibleCards() {
+            const cards = document.querySelectorAll('.collapsible-card');
+            
+            // 1. Load saved states
+            let savedStates = {};
+            try {
+                savedStates = JSON.parse(localStorage.getItem(localSettingsKey)) || {};
+            } catch (e) { console.error("Could not parse local settings", e); }
+
+            cards.forEach((card, index) => {
+                const cardId = `card-${index}`;
+                const header = card.querySelector('.collapsible-header');
+                
+                // 2. Apply saved state
+                if (savedStates[cardId] === 'collapsed') {
+                    card.classList.add('card-collapsed');
+                }
+
+                // 3. Add click listener
+                if (header) {
+                    header.addEventListener('click', () => {
+                        card.classList.toggle('card-collapsed');
+                        
+                        // 4. Save new state
+                        const isCollapsed = card.classList.contains('card-collapsed');
+                        savedStates[cardId] = isCollapsed ? 'collapsed' : 'open';
+                        localStorage.setItem(localSettingsKey, JSON.stringify(savedStates));
+                    });
+                }
             });
         }
-        
-        // --- NEW: Collapsible Dashboard Panel Logic ---
-        function setupDashboardPanel() {
-            if (!dashboardPanel || !checklistPanel || !openDashboardBtn || !closeDashboardBtn) return;
+
+        // --- NEW: COLLAPSIBLE SIDEBAR LOGIC ---
+        function setupCollapsibleSidebar() {
+            const openBtn = document.getElementById('open-dashboard-btn');
+            const closeBtn = document.getElementById('close-dashboard-btn');
+            const body = document.body;
+
+            // 1. Load saved state
+            let savedStates = {};
+            try {
+                savedStates = JSON.parse(localStorage.getItem(localSettingsKey)) || {};
+            } catch (e) { console.error("Could not parse local settings", e); }
             
-            const isClosed = localStorage.getItem('dashboardPanel') === 'closed';
-            if (isClosed) {
-                dashboardPanel.classList.add('collapsed');
-                checklistPanel.classList.add('expanded');
-                openDashboardBtn.classList.remove('hidden');
+            if (savedStates['dashboard'] === 'closed') {
+                body.classList.add('dashboard-closed');
+                body.classList.remove('dashboard-open');
+            } else {
+                body.classList.add('dashboard-open');
+                body.classList.remove('dashboard-closed');
             }
 
-            openDashboardBtn.addEventListener('click', () => {
-                dashboardPanel.classList.remove('collapsed');
-                checklistPanel.classList.remove('expanded');
-                openDashboardBtn.classList.add('hidden');
-                localStorage.setItem('dashboardPanel', 'open');
-            });
+            // 2. Add listeners
+            if (openBtn) {
+                openBtn.addEventListener('click', () => {
+                    body.classList.add('dashboard-open');
+                    body.classList.remove('dashboard-closed');
+                    savedStates['dashboard'] = 'open';
+                    localStorage.setItem(localSettingsKey, JSON.stringify(savedStates));
+                });
+            }
             
-            closeDashboardBtn.addEventListener('click', () => {
-                dashboardPanel.classList.add('collapsed');
-                checklistPanel.classList.add('expanded');
-                openDashboardBtn.classList.remove('hidden');
-                localStorage.setItem('dashboardPanel', 'closed');
-            });
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    body.classList.add('dashboard-closed');
+                    body.classList.remove('dashboard-open');
+                    savedStates['dashboard'] = 'closed';
+                    localStorage.setItem(localSettingsKey, JSON.stringify(savedStates));
+                });
+            }
         }
 
         // --- App Initialization (ONE listener for all) ---
@@ -2018,39 +1992,30 @@
                 auth = getAuth(app);
             } catch (e) {
                 console.error("Firebase failed to initialize:", e);
-                document.body.innerHTML = `<div class="p-8 text-center text-red-600"><strong>Error:</strong> Could not connect to the application database. Please check your Firebase configuration and security rules. (Details: ${e.message})</div>`;
-                return; // App cannot run
+                document.body.innerHTML = `<div class="p-8 text-center text-red-600"><strong>Error:</strong> Could not connect to the application database. Please contact support. (Details: ${e.message})</div>`;
+                return;
             }
 
             // 2. Handle Authentication
             onAuthStateChanged(auth, (user) => {
                 if (user) {
-                    // User is signed in
                     userId = user.uid;
                     isAuthReady = true;
                     console.log("Auth ready. UserID:", userId);
-                    // Auth is ready, initialize firestore components
                     initShiftPlans();
-                } else {
-                    // User is signed out, or auth not yet ready
-                    isAuthReady = false;
-                    console.log("Auth not ready.");
                 }
             });
 
             try {
-                // Sign in anonymously
                 await signInAnonymously(auth);
-                console.log("Signed in anonymously.");
             } catch (e) {
-                console.error("Anonymous authentication failed:", e);
-                // If auth fails, still mark as "ready" and init DB
-                // This might fail if security rules require auth
+                console.error("Authentication failed:", e);
+                userId = crypto.randomUUID();
                 isAuthReady = true;
                 initShiftPlans();
             }
             
-            // --- 3. Initialize UI Components ---
+            // 3. Initialize Shift Management UI
             try {
                 setupAccordions();
                 setupReminders();
@@ -2058,18 +2023,18 @@
                 setupAccordionControls(); 
                 setupTravelPathSubTabs();
                 setupCollapsibleCards();
-                setupDashboardPanel();
+                setupCollapsibleSidebar();
             } catch (e) {
-                console.error("Error initializing UI components:", e);
+                console.error("Error initializing shift management UI:", e);
             }
 
-            // --- 4. Initialize tab states ---
+            // 4. Initialize tab states
             const validTabIds = ['pre-shift', 'during-shift', 'travel-path', 'post-shift'];
             let lastTab = localStorage.getItem('activeTab');
             if (!lastTab || !validTabIds.includes(lastTab)) {
                 lastTab = 'pre-shift';
             }
-            showTab(lastTab); // Show the correct tab
+            showTab(lastTab);
 
             document.querySelectorAll('.tab-btn').forEach(button => {
                 button.addEventListener('click', () => {
@@ -2077,7 +2042,7 @@
                 });
             });
             
-            // --- 5. Initialize Travel Path Buttons ---
+            // 5. Initialize refresh buttons
             const refreshTravelPathBtn = document.getElementById('refresh-travel-path-btn');
             if (refreshTravelPathBtn) {
                 refreshTravelPathBtn.addEventListener('click', generateTravelPathReport);
