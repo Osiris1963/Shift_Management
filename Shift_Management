@@ -1,0 +1,2037 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shift Management Tool</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Poppins font */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f3f4f6;
+        }
+
+        /* McDonald's Colors */
+        .mcd-red { background-color: #c00000; }
+        .mcd-text-red { color: #c00000; }
+        .mcd-yellow { background-color: #ffc72c; }
+        .mcd-hover-yellow:hover { background-color: #ffc72c; }
+        
+        /* Active Tab Style */
+        .active-tab {
+            background-color: #9ca3af; /* gray-400 */
+            color: #1f2937; /* black */
+            font-weight: 700; /* bold */
+            border-bottom: none;
+            transform: translateY(0);
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            border-radius: 0.5rem;
+        }
+        /* Inactive Tab Style */
+        .tab-btn {
+            background-color: transparent;
+            color: #4b5563; /* gray-600 */
+            font-weight: 600; /* semibold */
+            transition: background-color 0.2s, color 0.2s, transform 0.2s ease-out;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: none;
+            transform: translateY(0);
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+        }
+        .tab-btn:hover {
+            background-color: #fffbeb; /* yellow-50 */
+            color: #111827; /* gray-900 */
+        }
+        
+        /* Custom Accordion */
+        .accordion-header {
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .accordion-header:hover {
+            background-color: #f9fafb;
+        }
+        
+        /* Sub-Tab Styles */
+        .sub-tab-btn {
+            background-color: #f9fafb;
+            color: #6b7280;
+            border-bottom: 3px solid transparent;
+            transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+        }
+        .sub-tab-btn:hover {
+            background-color: #fefce8;
+            color: #4b5563;
+        }
+        .active-sub-tab {
+            background-color: white;
+            color: #c00000;
+            border-bottom-color: #c00000;
+            font-weight: 600;
+        }
+
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+            padding: 0 1.5rem;
+        }
+        .accordion-open > .accordion-content {
+            max-height: 10000px; /* Use a large value */
+            padding: 1.5rem;
+        }
+        .accordion-open > .accordion-header .accordion-arrow {
+            transform: rotate(180deg);
+        }
+        .accordion-arrow {
+            transition: transform 0.3s;
+        }
+
+        /* Card Accordion (for dashboard panels) */
+        .card-accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, opacity 0.3s ease-out, padding 0.3s ease-out;
+            padding: 0 1.5rem;
+            opacity: 0;
+        }
+        .card-accordion-open > .card-accordion-content {
+            max-height: 1000px; /* Ample height for content */
+            opacity: 1;
+            padding: 1.5rem;
+        }
+        .card-accordion-open > .card-accordion-header .accordion-arrow {
+            transform: rotate(180deg);
+        }
+
+        /* Task Item */
+        .task-item {
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .task-item:last-child {
+            border-bottom: none;
+        }
+        
+        /* Custom Checkbox */
+        .task-checkbox {
+            appearance: none;
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid #9ca3af;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            position: relative;
+            flex-shrink: 0;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .task-checkbox:checked {
+            background-color: #c00000;
+            border-color: #c00000;
+        }
+        .task-checkbox:checked::after {
+            content: '✔';
+            color: white;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.8rem;
+            line-height: 1;
+        }
+        
+        /* Notes Input */
+        .task-notes {
+            transition: border-color 0.2s;
+        }
+        .task-notes:focus {
+            border-color: #ffc72c;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(255, 199, 44, 0.4);
+        }
+        
+        /* Modal */
+        .modal-bg {
+            background-color: rgba(0, 0, 0, 0.5);
+            transition: opacity 0.3s ease;
+        }
+        .modal {
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        
+        /* Alert/Notification */
+        #alert-box {
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        
+        /* Custom switch */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #c00000;
+        }
+        input:focus + .slider {
+            box-shadow: 0 0 1px #c00000;
+        }
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        /* NEW Layout Styles */
+        #dashboard-panel {
+            transition: width 0.3s ease, padding 0.3s ease, opacity 0.3s ease;
+            width: 32rem; /* 512px */
+            opacity: 1;
+        }
+        #main-content {
+            transition: width 0.3s ease;
+            width: calc(100% - 32rem);
+        }
+        
+        #dashboard-panel.collapsed {
+            width: 0;
+            padding: 0;
+            opacity: 0;
+            overflow: hidden;
+        }
+        #main-content.full-width {
+            width: 100%;
+        }
+        #open-dashboard-btn {
+            transition: opacity 0.3s ease;
+        }
+        .dashboard-content-container {
+            transition: opacity 0.3s ease;
+        }
+        #dashboard-panel.collapsed .dashboard-content-container {
+            opacity: 0;
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-white shadow-md p-4 flex items-center relative z-10">
+        <!-- Open Dashboard Button (hidden by default) -->
+        <button id="open-dashboard-btn" class="hidden p-2 rounded-md hover:bg-gray-100 mr-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+        </button>
+        <h1 class="text-2xl md:text-3xl font-extrabold mcd-text-red">Shift Management Tool</h1>
+    </header>
+
+    <!-- Main Body -->
+    <div class="flex flex-1 h-full overflow-hidden">
+        
+        <!-- Left Dashboard Panel -->
+        <aside id="dashboard-panel" class="bg-white shadow-lg p-4 h-full overflow-y-auto flex-shrink-0">
+            <div class="dashboard-content-container space-y-4">
+                
+                <!-- Collapse Button -->
+                <div class="flex justify-end mb-2">
+                    <button id="close-dashboard-btn" class="p-2 rounded-md hover:bg-gray-100">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Shift Plans Card -->
+                <div id="card-shift-plans" class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden card-accordion card-accordion-open">
+                    <div class="card-accordion-header p-4 flex items-center cursor-pointer">
+                        <svg class="accordion-arrow h-6 w-6 text-gray-500 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                        <h2 class="text-xl font-bold mcd-text-red">Shift Plans</h2>
+                    </div>
+                    <div class="card-accordion-content p-4 border-t border-gray-100">
+                        <!-- Save Plan Section -->
+                        <div class="mb-4">
+                            <label for="plan-name-input" class="block text-sm font-medium text-gray-700 mb-1">Plan Name</label>
+                            <input type="text" id="plan-name-input" placeholder="e.g., Opening Shift - John" class="p-3 border border-gray-300 rounded-lg task-notes w-full">
+                            <p class="text-xs text-gray-500 mt-1">Make sure the "Shift Date" in the card below is correct!</p>
+                        </div>
+                        <button id="save-plan-btn" class="mcd-red hover:bg-red-800 text-white font-semibold py-3 px-4 rounded-lg shadow-md w-full mb-6">
+                            Save Current Plan
+                        </button>
+                        
+                        <hr class="my-4 border-gray-200">
+
+                        <!-- Load Plan Section -->
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3">Load Plan by Date</h3>
+                        <div class="mb-4">
+                            <label for="plan-date-input" class="block text-sm font-medium text-gray-700 mb-1">Select Shift Date</label>
+                            <input type="date" id="plan-date-input" class="p-3 border border-gray-300 rounded-lg task-notes w-full">
+                        </div>
+                        <button id="find-plans-btn" class="mcd-yellow hover:bg-yellow-500 text-gray-900 font-semibold py-3 px-4 rounded-lg shadow-md w-full">
+                            Find Plans
+                        </button>
+                        
+                        <!-- Results Area -->
+                        <div id="plan-results-container" class="mt-4">
+                            <p id="plan-results-status" class="text-gray-500 text-sm">Please select a date and click "Find Plans".</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shift Details Card -->
+                <div id="card-shift-details" class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden card-accordion card-accordion-open">
+                    <div class="card-accordion-header p-4 flex items-center cursor-pointer">
+                        <svg class="accordion-arrow h-6 w-6 text-gray-500 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                        <h2 class="text-xl font-bold mcd-text-red">Shift Details</h2>
+                    </div>
+                    <div class="card-accordion-content p-4 border-t border-gray-100">
+                        <div class="grid grid-cols-1 gap-4">
+                            <input type="text" id="shift-date" data-save="shift-date" placeholder="Date" class="p-3 border border-gray-300 rounded-lg task-notes w-full" onfocus="(this.type='date')">
+                            <input type="text" id="shift-leader" data-save="shift-leader" placeholder="Shift Leader Name" class="p-3 border border-gray-300 rounded-lg task-notes w-full">
+                            <select id="shift-time" data-save="shift-time" class="p-3 border border-gray-300 rounded-lg task-notes w-full text-gray-500">
+                                <option value="" disabled selected>Select Shift</option>
+                                <option value="opening">Opening</option>
+                                <option value="mid">Mid-Shift</option>
+                                <option value="closing">Closing</option>
+                                <option value="graveyard">Graveyard Shift</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Shift Targets Card -->
+                <div id="card-shift-targets" class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden card-accordion card-accordion-open">
+                    <div class="card-accordion-header p-4 flex items-center cursor-pointer">
+                        <svg class="accordion-arrow h-6 w-6 text-gray-500 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                        <h2 class="text-xl font-bold mcd-text-red">Shift Targets</h2>
+                    </div>
+                    <div class="card-accordion-content p-4 border-t border-gray-100">
+                        <!-- Sales/Profit Column -->
+                        <div class="mb-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-3">Sales / Profit</h3>
+                            <div class="grid grid-cols-4 gap-2 items-center mb-2 font-medium text-gray-600 text-sm">
+                                <span>Metric</span>
+                                <span>Target</span>
+                                <span>Actual</span>
+                                <span>+/-</span>
+                            </div>
+                            <!-- Target Rows -->
+                            <div class="target-row grid grid-cols-4 gap-2 items-center mb-2">
+                                <label for="target-sales">Sales</label>
+                                <input type="number" id="target-sales" data-save="target-sales" class="target-input p-2 border border-gray-300 rounded-lg task-notes w-full">
+                                <input type="number" id="actual-sales" data-save="actual-sales" class="actual-input p-2 border border-gray-300 rounded-lg task-notes w-full">
+                                <span id="diff-sales" class="diff-output font-semibold text-center">0</span>
+                            </div>
+                            <div class="target-row grid grid-cols-4 gap-2 items-center mb-2">
+                                <label for="target-gc">GC</label>
+                                <input type="number" id="target-gc" data-save="target-gc" class="target-input p-2 border border-gray-300 rounded-lg task-notes w-full">
+                                <input type="number" id="actual-gc" data-save="actual-gc" class="actual-input p-2 border border-gray-300 rounded-lg task-notes w-full">
+                                <span id="diff-gc" class="diff-output font-semibold text-center">0</span>
+                            </div>
+                            <div class="target-row grid grid-cols-4 gap-2 items-center mb-2">
+                                <label for="target-ac">AC</label>
+                                <input type="number" id="target-ac" data-save="target-ac" class="target-input p-2 border border-gray-300 rounded-lg task-notes w-full">
+                                <input type="number" id="actual-ac" data-save="actual-ac" class="actual-input p-2 border border-gray-300 rounded-lg task-notes w-full">
+                                <span id="diff-ac" class="diff-output font-semibold text-center">0</span>
+                            </div>
+                            <div class="target-row grid grid-cols-4 gap-2 items-center mb-2">
+                                <label for="target-crew-labor">Crew Labor</label>
+                                <input type="number" id="target-crew-labor" data-save="target-crew-labor" class="target-input p-2 border border-gray-300 rounded-lg task-notes w-full">
+                                <input type="number" id="actual-crew-labor" data-save="actual-crew-labor" class="actual-input p-2 border border-gray-300 rounded-lg task-notes w-full">
+                                <span id="diff-crew-labor" class="diff-output font-semibold text-center">0</span>
+                            </div>
+                            <!-- NEW RW ROW -->
+                            <div class="target-row grid grid-cols-4 gap-2 items-center mb-2">
+                                <label for="target-rw">RW</label>
+                                <input type="number" id="target-rw" data-save="target-rw" class="target-input p-2 border border-gray-300 rounded-lg task-notes w-full">
+                                <input type="number" id="actual-rw" data-save="actual-rw" class="actual-input p-2 border border-gray-300 rounded-lg task-notes w-full">
+                                <span id="diff-rw" class="diff-output font-semibold text-center">0</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Customer Experience Column -->
+                        <div class="mb-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-3">Customer Experience</h3>
+                            <div class="grid grid-cols-4 gap-2 items-center mb-2 font-medium text-gray-600 text-sm">
+                                <span>Metric</span>
+                                <span>Target</span>
+                                <span>Actual</span>
+                                <span>+/-</span>
+                            </div>
+                            <!-- Target Rows -->
+                            <div class="target-row grid grid-cols-4 gap-2 items-center mb-2">
+                                <label for="target-oepe">OEPE</label>
+                                <input type="number" id="target-oepe" data-save="target-oepe" class="target-input p-2 border border-gray-300 rounded-lg task-notes w-full">
+                                <input type="number" id="actual-oepe" data-save="actual-oepe" class="actual-input p-2 border border-gray-300 rounded-lg task-notes w-full">
+                                <span id="diff-oepe" class="diff-output font-semibold text-center">0</span>
+                            </div>
+                            <div class="target-row grid grid-cols-4 gap-2 items-center mb-2">
+                                <label for="target-opt">Order Prep</label>
+                                <input type="number" id="target-opt" data-save="target-opt" class="target-input p-2 border border-gray-300 rounded-lg task-notes w-full">
+                                <input type="number" id="actual-opt" data-save="actual-opt" class="actual-input p-2 border border-gray-300 rounded-lg task-notes w-full">
+                                <span id="diff-opt" class="diff-output font-semibold text-center">0</span>
+                            </div>
+                            <div class="target-row grid grid-cols-4 gap-2 items-center mb-2">
+                                <label for="target-r2p">R2P</label>
+                                <input type="number" id="target-r2p" data-save="target-r2p" class="target-input p-2 border border-gray-300 rounded-lg task-notes w-full">
+                                <input type="number" id="actual-r2p" data-save="actual-r2p" class="actual-input p-2 border border-gray-300 rounded-lg task-notes w-full">
+                                <span id="diff-r2p" class="diff-output font-semibold text-center">0</span>
+                            </div>
+                            <div class="target-row grid grid-cols-4 gap-2 items-center mb-2">
+                                <label for="target-cfs">CFS</label>
+                                <input type="number" id="target-cfs" data-save="target-cfs" class="target-input p-2 border border-gray-300 rounded-lg task-notes w-full">
+                                <input type="number" id="actual-cfs" data-save="actual-cfs" class="actual-input p-2 border border-gray-300 rounded-lg task-notes w-full">
+                                <span id="diff-cfs" class="diff-output font-semibold text-center">0</span>
+                            </div>
+                        </div>
+                        
+                        <!-- People & Other Tasks -->
+                        <hr class="my-4 border-gray-200">
+                        <div class="grid grid-cols-1 gap-4">
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-800 mb-3">People</h3>
+                                <input type="text" id="people-names" data-save="people-names" placeholder="Names..." class="p-2 border border-gray-300 rounded-lg task-notes w-full mb-2">
+                                <input type="text" id="people-actual" data-save="people-actual" placeholder="Actual..." class="p-2 border border-gray-300 rounded-lg task-notes w-full">
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-800 mb-3">PM/BM Tasks</h3>
+                                <input type="text" id="tasks-fusoc" data-save="tasks-fusoc" placeholder="FUSOC..." class="p-2 border border-gray-300 rounded-lg task-notes w-full mb-2">
+                                <input type="text" id="tasks-prwr" data-save="tasks-prwr" placeholder="PR/WR..." class="p-2 border border-gray-300 rounded-lg task-notes w-full">
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-800 mb-3">Others</h3>
+                                <input type="text" id="tasks-others" data-save="tasks-others" placeholder="Notes..." class="p-2 border border-gray-300 rounded-lg task-notes w-full">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Right Main Content -->
+        <main id="main-content" class="flex-1 h-full overflow-y-auto p-4 md:p-6">
+            
+            <!-- Tab Navigation -->
+            <div class="bg-white rounded-xl shadow-lg mb-6 overflow-hidden">
+                <nav class="flex flex-wrap p-2 justify-center">
+                    <button class="tab-btn flex-grow text-center" data-tab="pre-shift">
+                        1. Pre-Shift
+                    </button>
+                    <button class="tab-btn flex-grow text-center" data-tab="during-shift">
+                        2. During Shift
+                    </button>
+                    <button class="tab-btn flex-grow text-center" data-tab="travel-path">
+                        3. Travel Path
+                    </button>
+                    <button class="tab-btn flex-grow text-center" data-tab="post-shift">
+                        4. Post-Shift
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="bg-white rounded-xl shadow-lg">
+                <!-- Pre-Shift Tab -->
+                <div id="tab-pre-shift" class="tab-content hidden">
+                    <!-- Accordion Controls -->
+                    <div class="p-4 bg-gray-50 border-b border-gray-200 flex justify-end space-x-3">
+                        <button class="expand-all-btn text-sm font-medium mcd-text-red hover:underline">Expand All</button>
+                        <button class="collapse-all-btn text-sm font-medium mcd-text-red hover:underline">Collapse All</button>
+                    </div>
+                    <div id="pre-shift-accordion-container">
+                        <!-- Accordions will be injected here by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- During Shift Tab -->
+                <div id="tab-during-shift" class="tab-content hidden">
+                    <!-- Accordion Controls -->
+                    <div class="p-4 bg-gray-50 border-b border-gray-200 flex justify-end space-x-3">
+                        <button class="expand-all-btn text-sm font-medium mcd-text-red hover:underline">Expand All</button>
+                        <button class="collapse-all-btn text-sm font-medium mcd-text-red hover:underline">Collapse All</button>
+                    </div>
+                    <div id="during-shift-accordion-container">
+                        <!-- During Shift accordions will be injected here by JavaScript -->
+                    </div>
+                    
+                    <!-- Travel Path Focus List -->
+                    <div class="p-6 mt-6 border-t border-gray-200">
+                        <h2 class="text-2xl font-bold mcd-text-red mb-4">Travel Path Focus List</h2>
+                        <p class="text-sm text-gray-600 mb-4">Click the button to refresh the list of outstanding items from your Pre-Shift checklist. This will show all unchecked tasks or tasks with actions required.</p>
+                        <button id="refresh-travel-path-btn" class="mcd-yellow hover:bg-yellow-500 text-gray-900 font-semibold py-2 px-4 rounded-lg shadow-md mb-6">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block -ml-1 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 110 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.004 10.043a1 1 0 01-.666 1.885 7.002 7.002 0 01-2.566-11.601 1 1 0 11.666 1.885 5.002 5.002 0 007 7H5a1 1 0 110-2h5.001a1 1 0 01.996 1.113z" clip-rule="evenodd" />
+                            </svg>
+                            Refresh Focus List
+                        </button>
+                        
+                        <div id="travel-path-report-container">
+                            <p class="text-gray-500">Click the "Refresh" button to generate your focus list.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Travel Path Tab -->
+                <div id="tab-travel-path" class="tab-content hidden">
+                    <!-- Travel Path Alarm -->
+                    <div class="p-6 border-b border-gray-200">
+                        <h2 class="text-2xl font-bold mcd-text-red mb-4">Travel Path Alarm</h2>
+                        <div class="flex items-center justify-between">
+                            <label for="travel-path-alarm-toggle" class="text-gray-700 font-medium text-lg">Enable 30-min Travel Path Reminder</label>
+                            <label class="switch">
+                                <input type="checkbox" id="travel-path-alarm-toggle" data-save="travel-path-alarm-toggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Sub-Tab Navigation -->
+                    <nav class="flex border-b border-gray-200">
+                        <button class="sub-tab-btn flex-grow p-4 text-center font-medium" data-sub-tab="checklist">
+                            Full Checklist
+                        </button>
+                        <button class="sub-tab-btn flex-grow p-4 text-center font-medium" data-sub-tab="todo">
+                            To Do List
+                        </button>
+                    </nav>
+
+                    <!-- Sub-Tab Content: Checklist -->
+                    <div id="sub-tab-checklist" class="sub-tab-content">
+                        <!-- Accordion Controls -->
+                        <div class="p-4 bg-gray-50 border-b border-gray-200 flex justify-end space-x-3">
+                            <button class="expand-all-btn text-sm font-medium mcd-text-red hover:underline">Expand All</button>
+                            <button class="collapse-all-btn text-sm font-medium mcd-text-red hover:underline">Collapse All</button>
+                        </div>
+                        <div id="travel-path-accordion-container">
+                            <!-- Travel Path accordions will be injected here by JavaScript -->
+                        </div>
+                    </div>
+
+                    <!-- Sub-Tab Content: To Do List -->
+                    <div id="sub-tab-todo" class="sub-tab-content hidden p-6">
+                        <h2 class="text-2xl font-bold mcd-text-red mb-4">Travel Path To Do List</h2>
+                        <p class="text-sm text-gray-600 mb-4">Click the button to refresh the list of outstanding items from your Travel Path checklist. This will show all unchecked tasks or tasks with actions required.</p>
+                        <button id="refresh-travel-path-todo-btn" class="mcd-yellow hover:bg-yellow-500 text-gray-900 font-semibold py-2 px-4 rounded-lg shadow-md mb-6">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block -ml-1 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 110 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.004 10.043a1 1 0 01-.666 1.885 7.002 7.002 0 01-2.566-11.601 1 1 0 11.666 1.885 5.002 5.002 0 007 7H5a1 1 0 110-2h5.001a1 1 0 01.996 1.113z" clip-rule="evenodd" />
+                            </svg>
+                            Refresh To Do List
+                        </button>
+                        
+                        <div id="travel-path-todo-list-container">
+                            <p class="text-gray-500">Click the "Refresh" button to generate your to-do list.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Post-Shift Tab -->
+                <div id="tab-post-shift" class="tab-content hidden">
+                    <!-- Accordion Controls -->
+                    <div class="p-4 bg-gray-50 border-b border-gray-200 flex justify-end space-x-3">
+                        <button class="expand-all-btn text-sm font-medium mcd-text-red hover:underline">Expand All</button>
+                        <button class="collapse-all-btn text-sm font-medium mcd-text-red hover:underline">Collapse All</button>
+                    </div>
+                    <div id="post-shift-accordion-container" class="mb-6">
+                        <!-- Post-Shift accordions will be injected here by JavaScript -->
+                    </div>
+
+                    <!-- AI Handover Section -->
+                    <div class="p-6 mt-6 border-t border-gray-200">
+                        <h2 class="text-2xl font-bold mcd-text-red mb-4">AI Handover Summary</h2>
+                        <p class="text-sm text-gray-600 mb-4">
+                            Click the button to generate a handover summary. The AI will analyze all shift targets and any notes you've written to create a concise report for the next shift manager.
+                        </p>
+                        <button id="generate-summary-btn" class="mcd-red hover:bg-red-800 text-white font-semibold py-3 px-6 rounded-lg shadow-md">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block -ml-1 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM12 2a1 1 0 01.967.744L14.146 7H17a1 1 0 110 2h-2.854l-1.18 4.256A1 1 0 0112 14h-1a1 1 0 01-1-1V3a1 1 0 011-1h1zm1 10a1 1 0 011 1v1h1a1 1 0 110 2h-1v1a1 1 0 11-2 0v-1h-1a1 1 0 110-2h1v-1a1 1 0 011-1z" clip-rule="evenodd" />
+                            </svg>
+                            Generate Handover Summary
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Reminder Modal -->
+    <div id="reminder-modal-bg" class="fixed inset-0 modal-bg hidden items-center justify-center p-4 z-40 opacity-0">
+        <div id="reminder-modal" class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md transform scale-95 opacity-0 modal">
+            <h3 class="text-xl font-bold mcd-text-red mb-4">Set Reminder</h3>
+            <p id="reminder-task-name" class="text-gray-700 mb-4"></p>
+            <label for="reminder-time" class="block text-sm font-medium text-gray-700 mb-2">Remind me in (minutes):</label>
+            <input type="number" id="reminder-time" value="15" class="p-3 border border-gray-300 rounded-lg task-notes w-full mb-4">
+            <div class="flex justify-end space-x-3">
+                <button id="cancel-reminder-btn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded-lg shadow-md">Cancel</button>
+                <button id="set-reminder-btn" class="mcd-red hover:bg-red-800 text-white font-semibold py-2 px-4 rounded-lg shadow-md">Set</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Box -->
+    <div id="alert-box" class="fixed bottom-0 right-0 m-8 bg-white rounded-lg shadow-xl p-6 w-full max-w-sm border-l-4 border-yellow-400 z-50 transform translate-x-full opacity-0">
+        <div class="flex items-start">
+            <div class="flex-shrink-0 pt-0.5">
+                <svg class="h-8 w-8 text-yellow-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                </svg>
+            </div>
+            <div class="ml-4 w-0 flex-1">
+                <h3 class="text-lg font-bold mcd-text-red">Reminder!</h3>
+                <p id="alert-message" class="mt-1 text-gray-700"></p>
+                <button id="acknowledge-alert-btn" class="mt-4 mcd-yellow hover:bg-yellow-500 text-gray-900 font-semibold py-2 px-4 rounded-lg shadow-md">Acknowledge</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Summary Loading Modal -->
+    <div id="ai-loading-modal-bg" class="fixed inset-0 modal-bg hidden items-center justify-center p-4 z-50 opacity-0">
+        <div id="ai-loading-modal" class="bg-white rounded-lg shadow-xl p-8 w-full max-w-md transform scale-95 opacity-0 modal flex flex-col items-center">
+            <svg class="animate-spin h-12 w-12 mcd-text-red mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <h3 class="text-xl font-bold text-gray-800">Generating Summary...</h3>
+            <p class="text-gray-600 mt-2">The AI is analyzing your shift, please wait.</p>
+        </div>
+    </div>
+
+    <!-- AI Summary Result Modal -->
+    <div id="ai-result-modal-bg" class="fixed inset-0 modal-bg hidden items-center justify-center p-4 z-50 opacity-0">
+        <div id="ai-result-modal" class="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl transform scale-95 opacity-0 modal flex flex-col" style="max-height: 90vh;">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-2xl font-bold mcd-text-red">AI Handover Summary</h3>
+                <button id="close-ai-result-btn" class="p-2 rounded-full hover:bg-gray-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div id="ai-summary-content" class="prose max-w-none overflow-y-auto mb-6 flex-1" style="white-space: pre-wrap; font-family: 'Poppins', sans-serif;">
+                <!-- AI content will be injected here -->
+            </div>
+            <div class="flex justify-end space-x-3 bg-gray-50 p-4 -m-6 mt-6 rounded-b-lg">
+                <button id="copy-summary-btn" class="mcd-yellow hover:bg-yellow-500 text-gray-900 font-semibold py-2 px-4 rounded-lg shadow-md">
+                    Copy to Clipboard
+                </button>
+                <button id="close-ai-result-btn-2" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded-lg shadow-md">Close</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script type="module">
+        // --- Firebase Imports ---
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { 
+            getAuth, 
+            signInAnonymously, 
+            signInWithCustomToken, 
+            onAuthStateChanged 
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { 
+            getFirestore, 
+            doc, 
+            getDoc, 
+            addDoc, 
+            setDoc, 
+            updateDoc, 
+            deleteDoc, 
+            onSnapshot, 
+            collection, 
+            query, 
+            where, 
+            getDocs,
+            serverTimestamp 
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- Firebase Config (Provided by Environment) ---
+        // PASTE YOUR FIREBASE CONFIG OBJECT HERE
+        const firebaseConfig = {
+          apiKey: "AIzaSyBlbxhzUp_TZd8oTrLxrY-E6gq-_XdiMCo",
+          authDomain: "mcdonalds-san-carlos.firebaseapp.com",
+          projectId: "mcdonalds-san-carlos",
+          storageBucket: "mcdonalds-san-carlos.firebasestorage.app",
+          messagingSenderId: "1052052612983",
+          appId: "1:1052052612983:web:0e107aa9b6aadad3666372",
+          measurementId: "G-QTSC1B9PD5"
+        };
+        // --- END OF FIREBASE CONFIG ---
+        
+        // --- Global App State ---
+        let app, db, auth;
+        let userId = 'anonymous';
+        let isAuthReady = false;
+        
+        // --- Data Persistence Keys ---
+        const uiStateKey = 'shiftAppUIState';
+
+        // --- NEW: Shift Plan Elements ---
+        const savePlanBtn = document.getElementById('save-plan-btn');
+        const planNameInput = document.getElementById('plan-name-input');
+        
+        // --- NEW: Firestore Shift Plans ---
+        function initShiftPlans() {
+            if (!isAuthReady || !db) return; // Wait for auth
+
+            const plansCollectionPath = `shift_plans`;
+            const plansCollection = collection(db, plansCollectionPath);
+
+            // 1. Save Current Plan
+            if (savePlanBtn) {
+                savePlanBtn.addEventListener('click', async () => {
+                    const planName = planNameInput.value.trim();
+                    const shiftDate = document.getElementById('shift-date').value;
+
+                    if (!planName) {
+                        console.warn("Please enter a plan name.");
+                        planNameInput.classList.add('border-red-500');
+                        setTimeout(() => planNameInput.classList.remove('border-red-500'), 2000);
+                        return;
+                    }
+                    
+                    if (!shiftDate) {
+                        console.warn("Please set a Shift Date in the 'Shift Details' card before saving.");
+                        document.getElementById('shift-date').classList.add('border-red-500');
+                        setTimeout(() => document.getElementById('shift-date').classList.remove('border-red-500'), 2000);
+                        return;
+                    }
+
+                    const currentData = scrapeDataFromForm();
+                    const author = currentData['shift-leader'] || 'Manager';
+
+                    savePlanBtn.disabled = true;
+                    savePlanBtn.textContent = 'Saving...';
+                    try {
+                        await addDoc(plansCollection, {
+                            name: planName,
+                            author: author,
+                            shiftDate: shiftDate, 
+                            data: currentData,
+                            createdAt: serverTimestamp()
+                        });
+                        planNameInput.value = ''; // Clear name
+                    } catch (error) {
+                        console.error("Error saving plan:", error);
+                    } finally {
+                        savePlanBtn.disabled = false;
+                        savePlanBtn.textContent = 'Save Current Plan';
+                    }
+                });
+            }
+
+            // 2. Calendar-based Plan Finder
+            const findPlansBtn = document.getElementById('find-plans-btn');
+            const planDateInput = document.getElementById('plan-date-input');
+            const planResultsContainer = document.getElementById('plan-results-container');
+            const planResultsStatus = document.getElementById('plan-results-status');
+
+            if (findPlansBtn) {
+                findPlansBtn.addEventListener('click', async () => {
+                    const selectedDate = planDateInput.value;
+                    if (!selectedDate) {
+                        planResultsStatus.textContent = 'Please select a date first.';
+                        return;
+                    }
+                    
+                    planResultsStatus.textContent = 'Searching...';
+                    planResultsContainer.innerHTML = ''; // Clear old results
+
+                    try {
+                        const q = query(plansCollection, where("shiftDate", "==", selectedDate));
+                        const querySnapshot = await getDocs(q);
+
+                        if (querySnapshot.empty) {
+                            planResultsStatus.textContent = `No plans found for ${selectedDate}.`;
+                            return;
+                        }
+
+                        planResultsStatus.textContent = ''; // Clear status
+                        
+                        let plansHtml = '<div class="flex flex-col space-y-2">';
+                        querySnapshot.forEach((doc) => {
+                            const plan = doc.data();
+                            plansHtml += `
+                                <button class="load-plan-btn text-left p-3 bg-gray-100 hover:bg-gray-200 rounded-lg flex justify-between items-center" data-doc-id="${doc.id}">
+                                    <span>
+                                        <span class="font-semibold">${plan.name}</span>
+                                        <span class="text-sm text-gray-600"> (by ${plan.author || 'Manager'})</span>
+                                    </span>
+                                    <span class="text-sm mcd-text-red font-semibold">Load</span>
+                                </button>
+                            `;
+                        });
+                        plansHtml += '</div>';
+                        planResultsContainer.innerHTML = plansHtml;
+
+                    } catch (error) {
+                        console.error("Error finding plans:", error);
+                        planResultsStatus.textContent = 'Error finding plans.';
+                    }
+                });
+            }
+
+            // 3. Event listener for the dynamically created "Load" buttons
+            if (planResultsContainer) {
+                planResultsContainer.addEventListener('click', async (e) => {
+                    const loadButton = e.target.closest('.load-plan-btn');
+                    if (!loadButton) return; 
+
+                    const docId = loadButton.dataset.docId;
+                    if (!docId) return;
+
+                    loadButton.innerHTML = '<span>Loading...</span>';
+                    loadButton.disabled = true;
+
+                    try {
+                        const docRef = doc(db, plansCollectionPath, docId);
+                        const docSnap = await getDoc(docRef);
+
+                        if (docSnap.exists()) {
+                            const loadedData = docSnap.data().data;
+                            populateFormWithData(loadedData); 
+                            showTab(localStorage.getItem('activeTab') || 'pre-shift');
+                            
+                            planResultsContainer.innerHTML = '';
+                            planResultsStatus.textContent = `Successfully loaded "${docSnap.data().name}".`;
+
+                        } else {
+                            console.warn("Selected plan not found.");
+                            planResultsStatus.textContent = 'Error: That plan could not be found.';
+                        }
+                    } catch (error) {
+                        console.error("Error loading plan:", error);
+                        planResultsStatus.textContent = 'An error occurred while loading the plan.';
+                        loadButton.innerHTML = '<span>Error</span>';
+                    }
+                });
+            }
+        }
+
+        // --- SCRIPT CONTENT ---
+        
+        const preShiftTasks = [
+            {
+                title: "Shift Preparation (Completed the day before)",
+                tasks: [
+                    "Review sales projections, compute and set targets and anticipate events for the day, current promotions and tie-ups",
+                    "Plan and check for shift schedule and positioning according to the positioning guide",
+                    "Read Manager's communication log, project briefs, and store performance from the previous day",
+                    "Review Daily Food Safety checklist/ DFS for previous Manager/ day part including channels. Ensure all crew are aware of all safety procedures.",
+                    "Check and prepare for ordering of buns as per ordering day.",
+                    "Check PM/BM Schedule, Training schedule and PR/WR"
+                ]
+            },
+            {
+                title: "Outside the Restaurant (Completed on approach)",
+                tasks: [
+                    "Parking lot & neighborhood free from litter (3 min walk)",
+                    "Drive-thru speaker post/ Customer Order display (COD), IP camera (SBS type) and HHOT are clean and in good",
+                    "Drive Thru lane/menu boards and landscaping clean and litter free.",
+                    "Drive Thru menu boards correct, updated prices, clean, readable, and as per merchandising guide",
+                    "Drive Thru windows are clean and locked when not in use.",
+                    "POPs in place ie streamer, banner as per merchandising guide, and in good condition",
+                    "Signages and pin lights are clean and in good condition-Wash hands upon entering the restaurant."
+                ]
+            },
+            {
+                title: "Customer Areas",
+                tasks: [
+                    "Windows/glass/ doors are clean and free from hand marks.",
+                    "Interior/Exterior dining area tables and chairs are arranged properly. Floors are clean and dry. Appropriate lighting. HVAC clean, working and with check temp at 76F.Music management is playing at the background and updated.",
+                    "Check WIFI/ connectivity status of all terminals and devices.",
+                    "Party area with décor, projector, and screen clean and working, odor free and organized.",
+                    "Interior/Exterior dining area trash bins are changed or mashed down and odor free. Waste Segregation are followed.",
+                    "Customer trays are clean and sanitized. High chairs, trays, cutleries and gravy are available and clean.",
+                    "Ceiling, vents, lighting, walls, and in-store signages clean, visible and readable for all guest",
+                    "Playplace floors, seating and equipment clean and safe.",
+                    "Utility bags, mop buckets, color-coded mops, spot sweeper, spray bottle, wet floor sign clean and available",
+                    "Restroom floors, toilet bowl, urinals, sink and mirror clean, soap, tissue are stocked, odor-free, hand-dryer functioning",
+                    "Customers handwash area floors, sink and mirrors clean, soap stocked and hand dryer functioning",
+                    "Self Ordering Kiosk working and smudge-free, check merchandising, product outage, cashless terminals (Check ECR), WIFI, and table tent and holder clean, sanitized and in good condition. Use proper cleaning materials.",
+                    "Happy Meal merchandiser and Order Ready Boards are clean and in good condition."
+                ]
+            },
+            {
+                title: "Service Area",
+                tasks: [
+                    "Front Counter/Take out counter menu board/DMB layout and price correct (including CRTs) based on merchandising",
+                    "Check finished product quality, taste test products, and holding times adhered to",
+                    "POS, printers, cashless terminals (Check ECR), money detector functioning properly with enough thermal paper stocks and change in drawers. RMHC canisters in place and sanitize every 10-15 mins during peak period.",
+                    "Sanitised towels, clean and soiled towel buckets available, clean and timed (Check sanitiser solution, 100ppm)",
+                    "Centre Island, front area and undercounters clean, DPS presenter side, HLZ/OAT area clean organized w/ sanitizer bottle",
+                    "Center island, condiment cart (DT, and DPS area) in mirror image and stocked",
+                    "Front Counter/Drive Thru/Take-out counter floors clean and dry",
+                    "Beverage Cell area stocked, KVS, bump bars and BLZ, clean and good condition. Verify service times of KVS drinks",
+                    "Equipment (Sundae Machine, beverage system with diffusers/nozzles, coffee machine, hot chocolate machine, juice dispensers, HLZ, OAT etc) calibrated, clean, sanitized & in good repair",
+                    "Equipmet KVS, bumpbars, pick list printers, Mini-ORB, HHOT, and scanners (For DT, FC, and OK) are clean, sanitized frequently and in good repair. Check service times."
+                ]
+            },
+            {
+                title: "Production Area",
+                tasks: [
+                    "Fry station equipment available, clean and in good working condition. Check product quality and stocks",
+                    "Equipment (Grills, Fryers, Rapid Toasters/HEBT, HLZ/OAT, Vertical and Overhead Transporter, UHC, holding cabinet, marinators, steamer, Spaghetti Vat, smart carrier, rice cooker, egg cooker, hotcake griddle, muffin toaster etc) clean & in good repair",
+                    "Small equipments (UHC clips and tongs etc.) complete and in use, clean and sanitized at least every 4 hours",
+                    "Check MFY Line set up, Check KVS, bumpbars, grill printers and stickers, radio clean, working and stocked.",
+                    "UHC clean and working. Production Baseline Chart updated and followed. Check Product quality and taste-testing",
+                    "Exhaust system, working. Filters clean. Scrapers & spatula blades changed every month",
+                    "Preparation of onions are consistently correct, and proper tempering of sauces and cheese. Products on the prep table is used within holding time.",
+                    "Chicken thawing are followed, updated and properly accomplished.",
+                    "Chicken holding time is being followed. Rice & gravy holding times are being followed and within holding time",
+                    "Product area stocked for 24/2, clean and secondary timers present including tempering and proper thawing",
+                    "3d compartment sink set up properly. Waste segregation followed. Reusables utensils washed, rinse and sanitised",
+                    "Refrigerator/freezers, dressing table clean, organized, rotated, and stocked. Sauce Dispensers stocked, calibrated and in working condition",
+                    "Mop buckets set up, floors and walls clean and sanitised. Grease trap clean every night and odor-free.",
+                    "Sanitized towels and grill cloths available, clean and sanitized. Complete towel system set-up and chemical rack",
+                    "Handwash area stocked, clean and in good repair ie warm water, AMH, clear gloves with sizes, hand dryer"
+                ]
+            },
+            {
+                title: "Other/Remote Areas",
+                tasks: [
+                    "Walk-in freezer and refrigerator temperature, clean, organized, rotated, enough stock available & locked",
+                    "Dry stock areas temperature, clean, tidy, rotated, enough stock and locked",
+                    "Ice Machine, Ice scooper, Ice bucket in clean, sanitised and working condition.",
+                    "Safety checks for CO2 (chained and locked) and CO2 detector working",
+                    "HVAC clean, functioning & comfortable",
+                    "Beverage syrup area clean, sanitized and stocked (check UTD)",
+                    "Back door locked Alarm working, exit signs lit and visible. Crew room clean and tidy.",
+                    "Crew room clean and comfortable. E-learning area clean, working and in use during training. Bulletin Boards minimums updated, clean and organized.",
+                    "Crew Room restroom clean, odor free and good working condition to be used by 1 crew at time.",
+                    "Corral area, gas room, pump room, genset room, rooftop, lactation room clean, Waste water treatment facility clean, odor free and organized-Crew to wear mask. gloves and apron when cleaning the corral and during trash out",
+                    "Birthday party booth and amenities room and party characters complete, clean, odor free and organized"
+                ]
+            }
+        ];
+        const duringShiftTasks = [
+            {
+                title: "Manage Transition to Regular Menu/Breakfast Menu (Check between 8:30-10:00am / 2:00-3:30am)",
+                tasks: [
+                    "Equipment on as per equipment fire up schedule",
+                    "Fried Product, French fry and Chicken Vat/ Hashbrown Vat (45 minutes) Turn on Flat Grill, and Egg Cooker, hotcake griddle.",
+                    "Small equipment in place at all stations/ Prepare small equipment for eggs, hotcake",
+                    "Kitchen area stocked with required paper stock/ Breakfast paper stocks",
+                    "Check product thawing levels against build to report/ Check build-to reports and thawing for breakfast items.",
+                    "Check prepared products against build to report/ Check prepared products for breakfast",
+                    "Reconstituted onions prepared (check timers and water drained after 1 hr)",
+                    "Fried and Grilled products areas stocked as per build to report: Buns/ Pandesal and Muffins",
+                    "Overhead Freezers/ Grill Seasoning",
+                    "Meat and Chicken products",
+                    "Fish",
+                    "Pies",
+                    "Fryers are topped up as per fill line",
+                    "MFY line stocked. Observe tempering and holding times",
+                    "Mustard/Butter",
+                    "Ketchup and Thousand Island Sauce",
+                    "Cheese slices- Both breakfast and regulars",
+                    "Onions",
+                    "McChicken Sauce",
+                    "BigMac Sauce",
+                    "Tartar Sauce",
+                    "McD Mayo--Both breakfast and regulars",
+                    "Grated Cheese",
+                    "Fried Products are set up/ Chicken fillet Portion and Pies",
+                    "Appropriate UHC slots change for regular menu/ breakfast menu",
+                    "UHC/Marinator breakfast products stocked as per guide/ Follow breakfast UHC Baseline Guide",
+                    "Grill settings adjusted and grill steamed cleaned- Both regulars and breakfast",
+                    "3 sinks set up in preparation for transition wash up- Both regulars and breakfast",
+                    "UHC Trays for reg menuwashed, rinsed and sanitised-Both regulars and breakfast",
+                    "Complete Food Safety/ Start of Food Safety checklist/ DFS",
+                    "After food safety has been completed, have crew stock UHC/holding cabinets with regular menu fried products",
+                    "Fries stocked at 10:20am/ Hash brown stocked at 3:50am",
+                    "Drive-thru, Front Counter, Take-out counter McCafe/ Dessert Center/ Project Gold menu board layout correct for regulars (including CRTs)/ Changeover to breakfast menu",
+                    "Finish product quality, taste test products, holding time adhered to- Both regulars and breakfast",
+                    "Breakfast products removed and stored/ Regular products removed and stores",
+                    "Dispose into waste bin, any remaining cooked breakfast products from the UHC and marinator/Dispose into waste bin any remaining regular products from UHC and marinator",
+                    "Send required equipment to wash up, detail clean- Both regulars and breakfast",
+                    "Return other equipment to storage-Both regulars and breakfast",
+                    "Wash room, tiles, sinks, and floors clean and dry-Both regulars and breakfast",
+                    "Back area floors cleaned and stainless polished-Both regulars and breakfast",
+                    "Wall tiles spot cleaned as required-Both regulars and breakfast",
+                    "Breakfast stock thawing for next days usage accordingly to restaurant build to Both regulars and breakfast",
+                    "Calibrate sauce guns and dispensers/Hotcake Dispenser calibrated",
+                    "Ensure restaurant is sufficiently stocked for lunch 24/2/ stocked up for breakfast for 24/2"
+                ]
+            }
+        ];
+        const travelPathTasks = [
+            {
+                title: "Outside Restaurant",
+                tasks: [
+                    "Parking lot & neighborhood free from litter (3 min walk)",
+                    "All outside storages are lock"
+                ]
+            },
+            {
+                title: "Customer Areas",
+                tasks: [
+                    "Windows/glass / doors are clean and free from hand marks.",
+                    "Interior / Exterior dining area tables and chairs are arranged properly.",
+                    "Floor is clean and dry",
+                    "Temperature acceptable",
+                    "Music is not too loud",
+                    "Male CR floor is clean and dry and has enough chemical and tissue",
+                    "Female CR floor is clean and dry and has enough chemical and tissue",
+                    "Hand wash area is clean and dry and has enough AMH. SOK has thermal ready and cashless terminals are in ECR mode"
+                ]
+            },
+            {
+                title: "Front Counter",
+                tasks: [
+                    "My cashiers has enough bills and coins",
+                    "Spare thermal paper at pos printer side available",
+                    "All condiments ready",
+                    "Reusable spoon and fork ready",
+                    "Floor is clean and dry"
+                ]
+            },
+            {
+                title: "BevCell",
+                tasks: [
+                    "Mix hopper is 3/4 full",
+                    "Topping dispensers 3/4 full",
+                    "Cups and Lids enough",
+                    "Ice bins are full",
+                    "Iced coffee based enough",
+                    "Hot coffee enough",
+                    "Milk dispenser has enough milk and within temperature",
+                    "Charts are updated",
+                    "Area is clean and dry including equipments"
+                ]
+            },
+            {
+                title: "Drive-Thru Present Area",
+                tasks: [
+                    "All condiments ready and mirror image",
+                    "OEPE is within or below target/dashboard targets are all green"
+                ]
+            },
+            {
+                title: "Fries Station",
+                tasks: [
+                    "Salt dispenser is 3/4 full",
+                    "All bags are available and enough",
+                    "Enough bags ready for serving",
+                    "Fries freezer has enough fries bags inside",
+                    "Vats are skimmed and closed when not in use",
+                    "Dump Tray has acceptable amount of salt",
+                    "Area is clean and dry"
+                ]
+            },
+            {
+                title: "FPCN/Chicken Vat",
+                tasks: [
+                    "All vats are closed when not in use",
+                    "All vats are filtered and clean",
+                    "Reach-in Freezer has enough frozen products",
+                    "Dip baskets water are replaced.",
+                    "Breader is sieved",
+                    "Has enough chicken ready for breading"
+                ]
+            },
+            {
+                title: "Towel Buckets",
+                tasks: [
+                    "All buckets has sanitized water at 100ppm concentration",
+                    "Has enough towels that can be used.",
+                    "Area is clean"
+                ]
+            },
+            {
+                title: "Chicken Cabinet",
+                tasks: [
+                    "Enough chicken available based on build to's",
+                    "Tongs are available",
+                    "Chickens are within holding time",
+                    "Clean area"
+                ]
+            },
+            { 
+                title: "UHC", 
+                tasks: [
+                    "All products inside UHC follow the baseline",
+                    "Products quality is acceptable",
+                    "All tongs are available",
+                    "Trays are clean"
+                ] 
+            },
+            { 
+                title: "Grill Side Freezer", 
+                tasks: [
+                    "All patties build to's are followed",
+                    "Temperature inside is within range"
+                ] 
+            },
+            { 
+                title: "Charts", 
+                tasks: [
+                    "All product tempering charts are updated and followed"
+                ] 
+            },
+            { 
+                title: "Backroom", 
+                tasks: [
+                    "Enough BIB's at backroom",
+                    "Compartment sinks are set up",
+                    "Area is clean and dry",
+                    "Cleaning and Sanitation charts are updated"
+                ] 
+            },
+            { 
+                title: "Crew Room", 
+                tasks: [
+                    "Area is clean and dry including CR"
+                ] 
+            },
+            { 
+                title: "Dry Storage", 
+                tasks: [
+                    "All products are rotated (FIFO)",
+                    "Clean and organized"
+                ] 
+            },
+            { 
+                title: "Chiller", 
+                tasks: [
+                    "Temperature of chiller and freezer are all within range",
+                    "All products are rotated (FIFO)",
+                    "Enough soaked onions and onion shaker is filled",
+                    "Ready to use shredded lettuce and enough supply for a day",
+                    "Tempered sliced cheese available",
+                    "Ready to use sliced tomato",
+                    "Enough thawed chicken",
+                    "Enough Spag Sauce thawed",
+                    "Ready mix of Soft Serve",
+                    "Area is clean, dry, and organized"
+                ] 
+            },
+            { 
+                title: "Freezer", 
+                tasks: [
+                    "All products are rotated (FIFO)",
+                    "No boxes opened",
+                    "Freezer door is closed properly"
+                ] 
+            }
+        ];
+        const postShiftTasks = [
+            {
+                title: "Post Shift Analysis",
+                tasks: [
+                    "Reflect on how well the restaurant delivered on the shift management outcome",
+                    "Diagnose actual results compared to projected shift targets",
+                    "Transition with the next incoming shift manager.. Out going Shift Leader to do Travel path 1 hour before shift ends: Communicate opportunities, problems, trends at the SMT and Managers Logbook. Incoming Shift Leader to do Travel Path 30 minutes before shift starts",
+                    "Reflect and plan for your next shift: Guest Experience, People, Product and Equipment",
+                    "Openly and visibly recognize and reward crew for meeting shift targets and performance excellence",
+                    "Thank remaining shift crew for their contribution to the shift"
+                ]
+            },
+            {
+                title: "To Do List (Prioritized)",
+                tasks: [
+                    "Food Safety/Safety/ Security QSC",
+                    "Customer Comfort",
+                    "Restaurant Appearance or Function",
+                    "and Convenience"
+                ]
+            }
+        ];
+
+        // --- Utility Functions ---
+        function createSlug(text) {
+            if (typeof text !== 'string') { return ''; }
+            return text.toLowerCase()
+                .replace(/\s+/g, '-')
+                .replace(/[^\w\-]+/g, '')
+                .replace(/\-\-+/g, '-')
+                .replace(/^-+/, '')
+                .replace(/-+$/, '');
+        }
+
+        function createTaskItem(taskText, sectionSlug, taskIndex) {
+            const taskId = `task-${sectionSlug}-task-${taskIndex}`;
+            return `
+                <div class="task-item py-4 flex flex-col md:flex-row md:items-center">
+                    <div class="flex items-center flex-1 mb-3 md:mb-0">
+                        <input type="checkbox" id="check-${taskId}" data-task-id="${taskId}" class="task-checkbox mr-4">
+                        <label for="check-${taskId}" class="text-gray-800 flex-1">${taskText}</label>
+                    </div>
+                    <div class="flex items-center w-full md:w-auto">
+                        <input type="text" id="notes-${taskId}" data-task-id="${taskId}" placeholder="Actions required..." class="task-notes border border-gray-300 rounded-lg p-2 w-full md:w-64 mr-3">
+                        <button class="reminder-btn p-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-700" data-task-id="${taskId}" data-task-name="${taskText}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v4.586l-1.707 1.707a1 1 0 001.414 1.414L10 11.414V5z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function createAccordionSection(title, tasks) {
+            const sectionSlug = createSlug(title);
+            const tasksHtml = tasks.map((task, index) => createTaskItem(task, sectionSlug, index)).join('');
+            
+            return `
+                <div class="accordion-item border-b border-gray-200">
+                    <div class="accordion-header p-6 flex justify-between items-center">
+                        <h3 class="text-xl font-semibold mcd-text-red">${title}</h3>
+                        <svg class="accordion-arrow h-6 w-6 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
+                    <div class="accordion-content bg-gray-50">
+                        ${tasksHtml || '<p class="text-gray-500">No tasks defined for this area yet.</p>'}
+                        <div class="pt-4 flex justify-end">
+                            <button class="collapse-section-btn text-sm font-medium text-gray-600 hover:text-gray-900 hover:underline flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7" />
+                                </svg>
+                                Collapse Area
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function setupAccordions() {
+            const preShiftContainer = document.getElementById('pre-shift-accordion-container');
+            const duringShiftContainer = document.getElementById('during-shift-accordion-container');
+            const travelPathContainer = document.getElementById('travel-path-accordion-container');
+            const postShiftContainer = document.getElementById('post-shift-accordion-container');
+            
+            if(preShiftContainer) preShiftContainer.innerHTML = preShiftTasks.map(section => createAccordionSection(section.title, section.tasks)).join('');
+            if(duringShiftContainer) duringShiftContainer.innerHTML = duringShiftTasks.map(section => createAccordionSection(section.title, section.tasks)).join('');
+            if(travelPathContainer) travelPathContainer.innerHTML = travelPathTasks.map(section => createAccordionSection(section.title, section.tasks)).join('');
+            if(postShiftContainer) postShiftContainer.innerHTML = postShiftTasks.map(section => createAccordionSection(section.title, section.tasks)).join('');
+
+            document.querySelectorAll('.accordion-header').forEach(header => {
+                header.addEventListener('click', () => {
+                    header.parentElement.classList.toggle('accordion-open');
+                });
+            });
+
+            document.querySelectorAll('.collapse-section-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const accordionItem = e.target.closest('.accordion-item');
+                    if (accordionItem) {
+                        accordionItem.classList.remove('accordion-open');
+                        const header = accordionItem.querySelector('.accordion-header');
+                        if (header) {
+                            header.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        }
+                    }
+                });
+            });
+
+            // Card Accordions (Dashboard)
+            document.querySelectorAll('.card-accordion-header').forEach(header => {
+                header.addEventListener('click', () => {
+                    const card = header.parentElement;
+                    card.classList.toggle('card-accordion-open');
+                    saveUIState(); // Save state on toggle
+                });
+            });
+        }
+        
+        // --- Modal Control ---
+        function openModal(modalId) {
+            const modalBg = document.getElementById(`${modalId}-bg`);
+            const modal = document.getElementById(modalId);
+            if (!modalBg || !modal) return;
+
+            modalBg.classList.remove('hidden');
+            modalBg.classList.add('flex');
+            setTimeout(() => {
+                modalBg.classList.remove('opacity-0');
+                modal.classList.remove('scale-95', 'opacity-0');
+            }, 10);
+        }
+
+        function closeModal(modalId) {
+            const modalBg = document.getElementById(`${modalId}-bg`);
+            const modal = document.getElementById(modalId);
+            if (!modalBg || !modal) return;
+
+            modalBg.classList.add('opacity-0');
+            modal.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modalBg.classList.add('hidden');
+                modalBg.classList.remove('flex');
+            }, 300);
+        }
+
+        function setupReminders() {
+            const modalBg = document.getElementById('reminder-modal-bg');
+            const taskNameEl = document.getElementById('reminder-task-name');
+            const reminderTimeInput = document.getElementById('reminder-time');
+            const setReminderBtn = document.getElementById('set-reminder-btn');
+            const cancelReminderBtn = document.getElementById('cancel-reminder-btn');
+            const acknowledgeAlertBtn = document.getElementById('acknowledge-alert-btn');
+            const alertBox = document.getElementById('alert-box');
+            const alertMessage = document.getElementById('alert-message');
+            const travelPathAlarm = document.getElementById('travel-path-alarm-toggle');
+
+            let taskToRemind = '';
+            let travelPathTimerId = null;
+
+            document.body.addEventListener('click', (e) => {
+                const btn = e.target.closest('.reminder-btn');
+                if (btn) {
+                    taskToRemind = btn.dataset.taskName;
+                    taskNameEl.textContent = `Task: ${taskToRemind}`;
+                    openModal('reminder-modal');
+                }
+            });
+
+            if (cancelReminderBtn) cancelReminderBtn.addEventListener('click', () => closeModal('reminder-modal'));
+            if (modalBg) modalBg.addEventListener('click', (e) => { if (e.target === modalBg) closeModal('reminder-modal'); });
+
+            function stopTravelPathTimer() {
+                if (travelPathTimerId) {
+                    clearTimeout(travelPathTimerId);
+                    travelPathTimerId = null;
+                    console.log("Travel Path Timer stopped.");
+                }
+            }
+
+            function startTravelPathTimer() {
+                stopTravelPathTimer();
+                function runAlarm() {
+                    // Check the *live* toggle state, not saved data
+                    if (travelPathAlarm.checked) {
+                        console.log("Firing 30-min Travel Path Notification");
+                        try {
+                            new Notification("McDonald's Shift Manager", {
+                                body: "Time to do your 30-minute travel path!",
+                                icon: "https://placehold.co/192x192/c00000/ffc72c?text=M"
+                            });
+                        } catch (err) {
+                            console.error("Notification failed:", err);
+                        }
+                        travelPathTimerId = setTimeout(runAlarm, 30 * 60 * 1000);
+                    } else {
+                        stopTravelPathTimer();
+                    }
+                }
+                console.log("Travel Path Timer started (30 min).");
+                travelPathTimerId = setTimeout(runAlarm, 30 * 60 * 1000);
+            }
+
+            if (setReminderBtn) {
+                setReminderBtn.addEventListener('click', () => {
+                    const minutes = parseInt(reminderTimeInput.value, 10);
+                    if (isNaN(minutes) || minutes <= 0) {
+                        console.warn("Please enter a valid number of minutes.");
+                        reminderTimeInput.focus();
+                        reminderTimeInput.classList.add('border-red-500');
+                        return;
+                    }
+                    reminderTimeInput.classList.remove('border-red-500');
+                    setTimeout(() => { showAlert(taskToRemind); }, minutes * 60 * 1000);
+                    closeModal('reminder-modal');
+                });
+            }
+
+            const showAlert = (message) => {
+                if (alertMessage) alertMessage.textContent = message;
+                if (alertBox) alertBox.classList.remove('transform', 'translate-x-full', 'opacity-0');
+            };
+
+            if (acknowledgeAlertBtn) {
+                acknowledgeAlertBtn.addEventListener('click', () => {
+                    if (alertBox) alertBox.classList.add('transform', 'translate-x-full', 'opacity-0');
+                });
+            }
+            
+            function checkNotificationPermission() {
+                const label = document.querySelector('label[for="travel-path-alarm-toggle"]');
+                if (!travelPathAlarm) return;
+
+                if (!("Notification" in window)) {
+                    console.warn("This browser does not support desktop notification. Alarm disabled.");
+                    travelPathAlarm.disabled = true;
+                    if (label) label.classList.add('text-gray-400');
+                    return;
+                }
+
+                if (Notification.permission === "denied") {
+                    console.warn("Notification permission is denied. Alarm is disabled.");
+                    travelPathAlarm.disabled = true;
+                    travelPathAlarm.checked = false;
+                    if (label) label.classList.add('text-gray-400');
+                } else {
+                    travelPathAlarm.disabled = false;
+                    if (label) label.classList.remove('text-gray-400');
+                }
+            }
+            checkNotificationPermission();
+
+            if (travelPathAlarm) {
+                travelPathAlarm.addEventListener('change', () => {
+                    if (travelPathAlarm.disabled) return;
+                    if (travelPathAlarm.checked) {
+                        if (Notification.permission === "granted") {
+                            startTravelPathTimer();
+                        } else { 
+                            Notification.requestPermission().then(permission => {
+                                if (permission === "granted") {
+                                    startTravelPathTimer();
+                                } else {
+                                    console.warn("User denied notification permission.");
+                                    travelPathAlarm.checked = false;
+                                    checkNotificationPermission(); 
+                                }
+                            });
+                        }
+                    } else {
+                        stopTravelPathTimer();
+                    }
+                });
+            }
+        }
+
+        function setupTargetCalculations() {
+            document.querySelectorAll('.target-row').forEach(row => {
+                const targetInput = row.querySelector('.target-input');
+                const actualInput = row.querySelector('.actual-input');
+                const diffOutput = row.querySelector('.diff-output');
+
+                const calculateDiff = () => {
+                    const target = parseFloat(targetInput.value) || 0;
+                    const actual = parseFloat(actualInput.value) || 0;
+                    const diff = actual - target;
+                    
+                    if (diffOutput) {
+                        diffOutput.textContent = diff.toFixed(0);
+                        if (diff < 0) {
+                            diffOutput.classList.remove('text-green-600');
+                            diffOutput.classList.add('text-red-600');
+                        } else if (diff > 0) {
+                            diffOutput.classList.remove('text-red-600');
+                            diffOutput.classList.add('text-green-600');
+                        } else {
+                            diffOutput.classList.remove('text-red-600', 'text-green-600');
+                        }
+                    }
+                };
+                
+                if (targetInput) targetInput.addEventListener('input', calculateDiff);
+                if (actualInput) actualInput.addEventListener('input', calculateDiff);
+            });
+        }
+        
+        function setupTaskListeners() {
+            setupTargetCalculations();
+        }
+        
+        // --- Tab Navigation ---
+        function showTab(tabId) {
+            try {
+                document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+                document.querySelectorAll('.tab-btn').forEach(b => {
+                    b.classList.remove('active-tab');
+                });
+
+                let tabToShow = document.getElementById(`tab-${tabId}`);
+                let btnToActivate = document.querySelector(`[data-tab="${tabId}"]`);
+                let idToSave = tabId;
+
+                if (!tabToShow || !btnToActivate) {
+                    tabToShow = document.getElementById(`tab-pre-shift`);
+                    btnToActivate = document.querySelector(`[data-tab="pre-shift"]`);
+                    idToSave = 'pre-shift';
+                }
+
+                if (tabToShow && btnToActivate) {
+                    tabToShow.classList.remove('hidden');
+                    btnToActivate.classList.add('active-tab');
+                    localStorage.setItem('activeTab', idToSave);
+                } else {
+                    console.error("CRITICAL: Default 'pre-shift' tab not found.");
+                }
+            } catch (e) {
+                console.error("Error in showTab:", e);
+            }
+        }
+        
+        function generateTravelPathReport() {
+            const container = document.getElementById('travel-path-report-container');
+            if (!container) return;
+            
+            let reportHtml = '';
+            let itemsFound = 0;
+            
+            preShiftTasks.forEach(section => {
+                const sectionSlug = createSlug(section.title);
+                let sectionTasksHtml = '';
+                
+                section.tasks.forEach((task, index) => {
+                    const taskId = `task-${sectionSlug}-task-${index}`;
+                    const isChecked = document.getElementById(`check-${taskId}`)?.checked === true;
+                    const notes = document.getElementById(`notes-${taskId}`)?.value || '';
+                    
+                    if (!isChecked || notes) {
+                        itemsFound++;
+                        sectionTasksHtml += `
+                            <li class="flex items-start py-2">
+                                <span class="text-2xl mr-3">${isChecked ? '📝' : '☐'}</span>
+                                <div>
+                                    <span class="text-gray-800">${task}</span>
+                                    ${notes ? `<p class="text-sm mcd-text-red font-medium pl-1"><strong>Notes:</strong> ${notes}</p>` : ''}
+                                </div>
+                            </li>
+                        `;
+                    }
+                });
+                
+                if (sectionTasksHtml) {
+                    reportHtml += `
+                        <div class="mb-4">
+                            <h4 class="text-lg font-semibold text-gray-700 border-b border-gray-200 pb-1 mb-2">${section.title}</h4>
+                            <ul class="list-none pl-2">${sectionTasksHtml}</ul>
+                        </div>
+                    `;
+                }
+            });
+            container.innerHTML = itemsFound === 0 ? '<p class="text-green-600 font-semibold">✅ All pre-shift tasks are complete and have no pending actions!</p>' : reportHtml;
+        }
+
+        function generateTravelPathToDoReport() {
+            const container = document.getElementById('travel-path-todo-list-container');
+            if (!container) return;
+            
+            let reportHtml = '';
+            let itemsFound = 0;
+
+            travelPathTasks.forEach(section => {
+                const sectionSlug = createSlug(section.title);
+                let sectionTasksHtml = '';
+                
+                section.tasks.forEach((task, index) => {
+                    const taskId = `task-${sectionSlug}-task-${index}`;
+                    const isChecked = document.getElementById(`check-${taskId}`)?.checked === true;
+                    const notes = document.getElementById(`notes-${taskId}`)?.value || '';
+                    
+                    if (!isChecked || notes) {
+                        itemsFound++;
+                        sectionTasksHtml += `
+                            <li class="flex items-start py-2">
+                                <span class="text-2xl mr-3">${isChecked ? '📝' : '☐'}</span>
+                                <div>
+                                    <span class="text-gray-800">${task}</span>
+                                    ${notes ? `<p class="text-sm mcd-text-red font-medium pl-1"><strong>Notes:</strong> ${notes}</p>` : ''}
+                                </div>
+                            </li>
+                        `;
+                    }
+                });
+                
+                if (sectionTasksHtml) {
+                    reportHtml += `
+                        <div class="mb-4">
+                            <h4 class="text-lg font-semibold text-gray-700 border-b border-gray-200 pb-1 mb-2">${section.title}</h4>
+                            <ul class="list-none pl-2">${sectionTasksHtml}</ul>
+                        </div>
+                    `;
+                }
+            });
+            container.innerHTML = itemsFound === 0 ? '<p class="text-green-600 font-semibold">✅ All travel path tasks are complete and have no pending actions!</p>' : reportHtml;
+        }
+
+        function setupAccordionControls() {
+            document.querySelectorAll('.tab-content').forEach(tabContent => {
+                const expandBtn = tabContent.querySelector('.expand-all-btn');
+                const collapseBtn = tabContent.querySelector('.collapse-all-btn');
+                const accordionContainer = tabContent.querySelector('[id$="-accordion-container"]');
+                if (!accordionContainer) return;
+
+                if (expandBtn) {
+                    expandBtn.addEventListener('click', () => {
+                        accordionContainer.querySelectorAll('.accordion-item').forEach(acc => acc.classList.add('accordion-open'));
+                    });
+                }
+                if (collapseBtn) {
+                    collapseBtn.addEventListener('click', () => {
+                        accordionContainer.querySelectorAll('.accordion-item').forEach(acc => acc.classList.remove('accordion-open'));
+                    });
+                }
+            });
+        }
+
+        function setupTravelPathSubTabs() {
+            const tabContainer = document.getElementById('tab-travel-path');
+            if (!tabContainer) return;
+
+            const subTabButtons = tabContainer.querySelectorAll('.sub-tab-btn');
+            const subTabContents = tabContainer.querySelectorAll('.sub-tab-content');
+
+            subTabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const subTabId = button.dataset.subTab;
+                    subTabButtons.forEach(btn => btn.classList.remove('active-sub-tab'));
+                    subTabContents.forEach(content => content.classList.add('hidden'));
+                    button.classList.add('active-sub-tab');
+                    const contentToShow = tabContainer.querySelector(`#sub-tab-${subTabId}`);
+                    if (contentToShow) contentToShow.classList.remove('hidden');
+                });
+            });
+
+            const defaultSubTab = tabContainer.querySelector('.sub-tab-btn[data-sub-tab="checklist"]');
+            const defaultSubTabContent = tabContainer.querySelector('#sub-tab-checklist');
+            if(defaultSubTab) defaultSubTab.classList.add('active-sub-tab');
+            if(defaultSubTabContent) defaultSubTabContent.classList.remove('hidden');
+        }
+
+        // --- NEW: FIRESTORE SHIFT MANAGEMENT FUNCTIONS ---
+
+        /**
+         * Clears all fields in the shift management form.
+         */
+        function clearShiftForm() {
+            // Clear all [data-save] inputs
+            document.querySelectorAll('[data-save]').forEach(input => {
+                if (input.type === 'checkbox' || input.type === 'radio') {
+                    input.checked = false;
+                } else {
+                    input.value = '';
+                }
+            });
+            
+            // Clear all task checkboxes
+            document.querySelectorAll('.task-checkbox').forEach(box => {
+                box.checked = false;
+            });
+            
+            // Clear all task notes
+            document.querySelectorAll('.task-notes').forEach(note => {
+                note.value = '';
+            });
+
+            // Reset target diffs
+            document.querySelectorAll('.diff-output').forEach(diff => {
+                diff.textContent = '0';
+                diff.classList.remove('text-red-600', 'text-green-600');
+            });
+        }
+
+        /**
+         * Scrapes all data from the form into a single object.
+         * @returns {object} The complete shiftData object.
+         */
+        function scrapeDataFromForm() {
+            const shiftData = {};
+
+            // Get all [data-save] inputs
+            document.querySelectorAll('[data-save]').forEach(input => {
+                const key = input.dataset.save;
+                if (input.type === 'checkbox') {
+                    shiftData[key] = input.checked;
+                } else {
+                    shiftData[key] = input.value;
+                }
+            });
+            
+            // Get all task checkboxes
+            document.querySelectorAll('.task-checkbox').forEach(box => {
+                const key = `check-${box.dataset.taskId}`;
+                shiftData[key] = box.checked;
+            });
+            
+            // Get all task notes
+            document.querySelectorAll('.task-notes').forEach(note => {
+                // Check for data-save first, fallback to dynamic id
+                const key = note.dataset.save || `notes-${note.dataset.taskId}`;
+                if (key) { // Ensure key is valid
+                    shiftData[key] = note.value;
+                }
+            });
+            
+            return shiftData;
+        }
+
+        /**
+         * Populates the entire form from a shiftData object.
+         * @param {object} data - The shiftData object from Firestore.
+         */
+        function populateFormWithData(data) {
+            if (!data) {
+                console.warn("No data provided to populate form.");
+                return;
+            }
+            
+            // Clear the form *before* populating
+            clearShiftForm();
+
+            // Set all [data-save] inputs
+            document.querySelectorAll('[data-save]').forEach(input => {
+                const key = input.dataset.save;
+                if (data[key] !== undefined) {
+                    if (input.type === 'checkbox') {
+                        input.checked = data[key];
+                    } else {
+                        input.value = data[key];
+                    }
+                    // Trigger input event for target calculations
+                    if (input.classList.contains('target-input') || input.classList.contains('actual-input')) {
+                        input.dispatchEvent(new Event('input'));
+                    }
+                    // Trigger change for alarm toggle
+                    if (input.id === 'travel-path-alarm-toggle') {
+                         input.dispatchEvent(new Event('change'));
+                    }
+                }
+            });
+            
+            // Set all task checkboxes
+            document.querySelectorAll('.task-checkbox').forEach(box => {
+                const key = `check-${box.dataset.taskId}`;
+                box.checked = data[key] === true;
+            });
+            
+            // Set all task notes
+            document.querySelectorAll('.task-notes').forEach(note => {
+                const key = note.dataset.save || `notes-${note.dataset.taskId}`;
+                if (key && data[key] !== undefined) {
+                    note.value = data[key];
+                }
+            });
+        }
+
+        // --- NEW: UI State Management ---
+        function saveUIState() {
+            const state = {
+                dashboardOpen: !document.getElementById('dashboard-panel').classList.contains('collapsed'),
+                cardShiftPlansOpen: document.getElementById('card-shift-plans').classList.contains('card-accordion-open'),
+                cardShiftDetailsOpen: document.getElementById('card-shift-details').classList.contains('card-accordion-open'),
+                cardShiftTargetsOpen: document.getElementById('card-shift-targets').classList.contains('card-accordion-open'),
+            };
+            localStorage.setItem(uiStateKey, JSON.stringify(state));
+        }
+
+        function loadUIState() {
+            const state = JSON.parse(localStorage.getItem(uiStateKey));
+            if (!state) return; // No saved state
+
+            const dashboardPanel = document.getElementById('dashboard-panel');
+            const mainContent = document.getElementById('main-content');
+            const openBtn = document.getElementById('open-dashboard-btn');
+
+            if (state.dashboardOpen === false) { // Explicitly check for false
+                dashboardPanel.classList.add('collapsed');
+                mainContent.classList.add('full-width');
+                openBtn.classList.remove('hidden');
+            } else {
+                dashboardPanel.classList.remove('collapsed');
+                mainContent.classList.remove('full-width');
+                openBtn.classList.add('hidden');
+            }
+
+            // Set card states
+            const cards = [
+                { id: 'card-shift-plans', isOpen: state.cardShiftPlansOpen },
+                { id: 'card-shift-details', isOpen: state.cardShiftDetailsOpen },
+                { id: 'card-shift-targets', isOpen: state.cardShiftTargetsOpen },
+            ];
+            cards.forEach(cardState => {
+                const cardEl = document.getElementById(cardState.id);
+                if (cardEl) {
+                    if (cardState.isOpen) {
+                        cardEl.classList.add('card-accordion-open');
+                    } else {
+                        cardEl.classList.remove('card-accordion-open');
+                    }
+                }
+            });
+        }
+
+        function setupDashboardToggle() {
+            const dashboardPanel = document.getElementById('dashboard-panel');
+            const mainContent = document.getElementById('main-content');
+            const openBtn = document.getElementById('open-dashboard-btn');
+            const closeBtn = document.getElementById('close-dashboard-btn');
+
+            if (openBtn) {
+                openBtn.addEventListener('click', () => {
+                    dashboardPanel.classList.remove('collapsed');
+                    mainContent.classList.remove('full-width');
+                    openBtn.classList.add('hidden');
+                    saveUIState();
+                });
+            }
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    dashboardPanel.classList.add('collapsed');
+                    mainContent.classList.add('full-width');
+                    openBtn.classList.remove('hidden');
+                    saveUIState();
+                });
+            }
+        }
+
+        // --- NEW: AI Handover Summary ---
+        
+        function setupAISummary() {
+            const generateBtn = document.getElementById('generate-summary-btn');
+            const copyBtn = document.getElementById('copy-summary-btn');
+            const closeResultBtn = document.getElementById('close-ai-result-btn');
+            const closeResultBtn2 = document.getElementById('close-ai-result-btn-2');
+            
+            if (generateBtn) {
+                generateBtn.addEventListener('click', handleGenerateSummary);
+            }
+            
+            if (copyBtn) {
+                copyBtn.addEventListener('click', () => {
+                    const content = document.getElementById('ai-summary-content').innerText;
+                    // Use execCommand for broader compatibility in iframes
+                    try {
+                        const textArea = document.createElement('textarea');
+                        textArea.value = content;
+                        document.body.appendChild(textArea);
+                        textArea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textArea);
+                        copyBtn.textContent = 'Copied!';
+                        setTimeout(() => { copyBtn.textContent = 'Copy to Clipboard'; }, 2000);
+                    } catch (err) {
+                        console.error('Failed to copy text: ', err);
+                    }
+                });
+            }
+            
+            if(closeResultBtn) closeResultBtn.addEventListener('click', () => closeModal('ai-result-modal'));
+            if(closeResultBtn2) closeResultBtn2.addEventListener('click', () => closeModal('ai-result-modal'));
+        }
+
+        async function handleGenerateSummary() {
+            openModal('ai-loading-modal');
+
+            // 1. Scrape all data
+            const shiftLeader = document.getElementById('shift-leader').value || 'Manager';
+            const shiftTime = document.getElementById('shift-time').value || 'shift';
+            
+            // Scrape KPIs
+            const kpis = [];
+            document.querySelectorAll('#card-shift-targets .target-row').forEach(row => {
+                const label = row.querySelector('label').textContent;
+                const target = row.querySelector('.target-input').value;
+                const actual = row.querySelector('.actual-input').value;
+                if(target || actual) { // Only include if there's data
+                    kpis.push(`${label}: Target=${target || 'N/A'}, Actual=${actual || 'N/A'}`);
+                }
+            });
+
+            // Scrape Notes
+            const notes = [];
+            document.querySelectorAll('.task-notes').forEach(input => {
+                if (input.value && !input.dataset.save) { // Exclude dashboard inputs
+                    const label = input.closest('.task-item')?.querySelector('label')?.textContent;
+                    if(label) {
+                        notes.push(`Note for task "${label}": ${input.value}`);
+                    }
+                }
+            });
+            // Add People/Other notes
+            const peopleNames = document.getElementById('people-names').value;
+            if(peopleNames) notes.push(`People (Names): ${peopleNames}`);
+            const peopleActual = document.getElementById('people-actual').value;
+            if(peopleActual) notes.push(`People (Actual): ${peopleActual}`);
+            const tasksFusoc = document.getElementById('tasks-fusoc').value;
+            if(tasksFusoc) notes.push(`PM/BM Tasks (FUSOC): ${tasksFusoc}`);
+            const tasksPrwr = document.getElementById('tasks-prwr').value;
+            if(tasksPrwr) notes.push(`PM/BM Tasks (PR/WR): ${tasksPrwr}`);
+            const tasksOthers = document.getElementById('tasks-others').value;
+            if(tasksOthers) notes.push(`Other Notes: ${tasksOthers}`);
+
+            // 2. Create Prompt
+            const systemPrompt = `You are an expert, professional McDonald's shift manager writing a handover summary for the next manager.
+Your tone must be concise, professional, and clear.
+You MUST format the output as clean, readable PLAIN TEXT.
+- DO NOT use any Markdown (like **, #, or *).
+- Use simple dashes (-) for bullet points.
+- Use section headers in ALL CAPS (e.g., SHIFT HIGHLIGHTS, KEY PERFORMANCE (KPIs)).
+
+Here are the critical business rules for interpreting KPIs. You MUST follow these:
+- Sales, GC (Guest Count), AC (Average Check), CFS (Customer Feedback Survey): Higher actual vs. target is GOOD.
+- Crew Labor, RW (Raw Waste), OEPE (Order End Present End), Order Prep, R2P (Receipt to Present): Lower actual vs. target is GOOD. (These are waste or time metrics).
+
+Here are the required sections for the summary. If a category has no items, omit the entire section:
+1. SHIFT HIGHLIGHTS: Your overall summary of the shift.
+2. KEY PERFORMANCE (KPIs): A bulleted list analyzing the KPI data.
+3. OPERATIONAL NOTES: A bulleted list of notes from the checklists (maintenance, food safety, etc.).
+4. PEOPLE & CREW: A bulleted list of any notes on people.`;
+            
+            let userPrompt = `Please generate a handover summary for the end of my ${shiftTime}.
+My name is ${shiftLeader}.
+Here is the raw data:
+
+---
+**KPI Data:**
+${kpis.length > 0 ? kpis.join('\n') : 'No KPI data entered.'}
+---
+**Operational & Task Notes:**
+${notes.length > 0 ? notes.join('\n') : 'No specific notes were logged.'}
+---`;
+
+            // 3. Call API
+            const apiKey = ""; // API key is handled by the platform
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userPrompt }] }],
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
+                },
+            };
+            
+            let summaryText = "Error: Could not generate summary.";
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!response.ok) {
+                    const errorBody = await response.json();
+                    throw new Error(`API Error ${response.status}: ${errorBody.error.message}`);
+                }
+
+                const result = await response.json();
+                const candidate = result.candidates?.[0];
+
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                    summaryText = candidate.content.parts[0].text;
+                } else {
+                    console.warn("AI response was missing expected content.", result);
+                    summaryText = "Error: Received an empty response from the AI.";
+                }
+
+            } catch (error) {
+                console.error("Error calling Gemini API:", error);
+                summaryText = `Error generating summary: ${error.message}. Please check your connection.`;
+            }
+
+            // 4. Display Result
+            closeModal('ai-loading-modal');
+            document.getElementById('ai-summary-content').textContent = summaryText;
+            openModal('ai-result-modal');
+        }
+
+        // --- App Initialization ---
+        async function main() {
+            // 1. Initialize Firebase
+            try {
+                if (!firebaseConfig || Object.keys(firebaseConfig).length === 0 || firebaseConfig.apiKey.includes("PASTE_YOUR")) {
+                    throw new Error("Firebase config is missing or incomplete. Please follow setup_guide.md.");
+                }
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+            } catch (e) {
+                console.error("Firebase failed to initialize:", e);
+                document.body.innerHTML = `<div class="p-8 text-center text-red-600"><strong>Error:</strong> Could not connect to the application database. (Details: ${e.message})</div>`;
+                return;
+            }
+
+            // 2. Handle Authentication
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    userId = user.uid;
+                    isAuthReady = true;
+                    console.log("Auth ready. UserID:", userId);
+                    initShiftPlans(); 
+                } else {
+                    // No user, sign in anonymously
+                    signInAnonymously(auth).catch((error) => {
+                        console.error("Anonymous sign-in failed:", error);
+                        isAuthReady = true; // Still allow app to run, but Firestore might fail
+                        initShiftPlans();
+                    });
+                }
+            });
+
+            // 3. Initialize UI Components
+            try {
+                setupAccordions();
+                setupReminders();
+                setupTaskListeners(); 
+                setupAccordionControls(); 
+                setupTravelPathSubTabs();
+                setupDashboardToggle();
+                setupAISummary();
+                loadUIState(); // Load saved UI preferences
+            } catch (e) {
+                console.error("Error initializing UI components:", e);
+            }
+
+            // 4. Initialize tab states
+            const validTabIds = ['pre-shift', 'during-shift', 'travel-path', 'post-shift'];
+            let lastTab = localStorage.getItem('activeTab');
+            if (!lastTab || !validTabIds.includes(lastTab)) {
+                lastTab = 'pre-shift';
+            }
+            showTab(lastTab); 
+
+            document.querySelectorAll('.tab-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    showTab(button.dataset.tab);
+                });
+            });
+            
+            const refreshTravelPathBtn = document.getElementById('refresh-travel-path-btn');
+            if (refreshTravelPathBtn) {
+                refreshTravelPathBtn.addEventListener('click', generateTravelPathReport);
+            }
+
+            const refreshTravelPathTodoBtn = document.getElementById('refresh-travel-path-todo-btn');
+            if (refreshTravelPathTodoBtn) {
+                refreshTravelPathTodoBtn.addEventListener('click', generateTravelPathToDoReport);
+            }
+        }
+
+        // Run the app
+        main();
+
+    </script>
+</body>
+</html>
