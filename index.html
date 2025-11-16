@@ -199,11 +199,13 @@
         #dashboard-panel {
             transition: width 0.3s ease;
             z-index: 20; 
+            overflow-y: auto; /* Allow dashboard to scroll independently on desktop */
         }
 
         #main-checklist-panel {
             transition: width 0.3s ease;
             position: relative; 
+            overflow-y: auto; /* Allow checklist to scroll independently on desktop */
         }
 
         #tab-nav-container {
@@ -237,6 +239,19 @@
             }
         }
 
+        /* MOBILE FIX: Remove fixed heights on mobile, allow natural flow */
+        @media (max-width: 767px) {
+            #dashboard-panel {
+                height: auto; /* Allow height to be determined by content */
+                width: 100%;
+            }
+            #main-checklist-panel {
+                height: auto; /* Allow height to be determined by content */
+                width: 100%;
+            }
+        }
+
+
         /* Collapsible Card Header */
         .collapsible-header {
             cursor: pointer;
@@ -264,8 +279,10 @@
 <body class="h-full">
     
     <!-- Main container: On mobile, h-auto. On desktop, h-full -->
+    <!-- Add `overflow-hidden` to body or main container on desktop if needed, but allow scrolling on mobile -->
     <div class="flex flex-col md:flex-row md:h-full w-full dashboard-open">
         <!-- "Open" button, hidden by default, shown when panel is closed -->
+        <!-- Added z-30 to ensure it's above the checklist panel's sticky tabs -->
         <button id="open-dashboard-btn" class="hidden md:block fixed top-4 left-4 mcd-red text-white p-2 rounded-full shadow-lg z-30">
              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
@@ -298,7 +315,7 @@
                     <!-- Save Plan Section -->
                     <div>
                         <label for="plan-name-input" class="block text-sm font-medium text-gray-700 mb-1">Plan Name</label>
-                        <input type="text" id="plan-name-input" placeholder="e.g., Opening Shift - John" class="p-3 border border-gray-300 rounded-lg task-notes w-full">
+                        <input type="text" id="plan-name-input" placeholder="e.g., Opening Shift - John" class="p-3 border border-gray-300 rounded-lg task-notes-core w-full">
                         <p class="text-xs text-gray-500 mt-1">Make sure the "Shift Date" in the card below is correct!</p>
                         <button id="save-plan-btn" class="mt-4 mcd-red hover:bg-red-800 text-white font-semibold py-3 px-4 rounded-lg shadow-md w-full">
                             Save Current Plan
@@ -311,7 +328,7 @@
                     <div>
                         <h3 class="text-lg font-semibold text-gray-800 mb-3">Load Plan by Date</h3>
                         <label for="plan-date-input" class="block text-sm font-medium text-gray-700 mb-1">Select Shift Date</label>
-                        <input type="date" id="plan-date-input" class="p-3 border border-gray-300 rounded-lg task-notes w-full">
+                        <input type="date" id="plan-date-input" class="p-3 border border-gray-300 rounded-lg task-notes-core w-full">
                         <button id="find-plans-btn" class="mt-4 mcd-yellow hover:bg-yellow-500 text-gray-900 font-semibold py-3 px-4 rounded-lg shadow-md w-full">
                             Find Plans
                         </button>
@@ -336,9 +353,9 @@
                 </div>
                 <div class="collapsible-content pt-6">
                     <div class="grid grid-cols-1 md:grid-cols-1 gap-4">
-                        <input type="date" id="shift-date" data-save="shift-date" placeholder="Date" class="p-3 border border-gray-300 rounded-lg task-notes w-full" onfocus="(this.type='date')">
-                        <input type="text" id="shift-leader" data-save="shift-leader" placeholder="Shift Leader Name" class="p-3 border border-gray-300 rounded-lg task-notes w-full">
-                        <select id="shift-time" data-save="shift-time" class="p-3 border border-gray-300 rounded-lg task-notes w-full text-gray-500">
+                        <input type="date" id="shift-date" data-save="shift-date" placeholder="Date" class="p-3 border border-gray-300 rounded-lg task-notes-core w-full" onfocus="(this.type='date')">
+                        <input type="text" id="shift-leader" data-save="shift-leader" placeholder="Shift Leader Name" class="p-3 border border-gray-300 rounded-lg task-notes-core w-full">
+                        <select id="shift-time" data-save="shift-time" class="p-3 border border-gray-300 rounded-lg task-notes-core w-full text-gray-500">
                             <option value="" disabled selected>Select Shift</option>
                             <option value="opening">Opening</option>
                             <option value="mid">Mid-Shift</option>
@@ -373,32 +390,32 @@
                             <!-- Target Rows -->
                             <div class="target-row grid grid-cols-4 gap-2 items-center mb-2">
                                 <label for="target-sales">Sales</label>
-                                <input type="number" id="target-sales" data-save="target-sales" class="target-input p-2 border border-gray-300 rounded-lg task-notes w-full">
-                                <input type="number" id="actual-sales" data-save="actual-sales" class="actual-input p-2 border border-gray-300 rounded-lg task-notes w-full">
+                                <input type="number" id="target-sales" data-save="target-sales" class="target-input p-2 border border-gray-300 rounded-lg task-notes-core w-full">
+                                <input type="number" id="actual-sales" data-save="actual-sales" class="actual-input p-2 border border-gray-300 rounded-lg task-notes-core w-full">
                                 <span id="diff-sales" class="diff-output font-semibold text-center">0</span>
                             </div>
                             <div class="target-row grid grid-cols-4 gap-2 items-center mb-2">
                                 <label for="target-gc">GC</label>
-                                <input type="number" id="target-gc" data-save="target-gc" class="target-input p-2 border border-gray-300 rounded-lg task-notes w-full">
-                                <input type="number" id="actual-gc" data-save="actual-gc" class="actual-input p-2 border border-gray-300 rounded-lg task-notes w-full">
+                                <input type="number" id="target-gc" data-save="target-gc" class="target-input p-2 border border-gray-300 rounded-lg task-notes-core w-full">
+                                <input type="number" id="actual-gc" data-save="actual-gc" class="actual-input p-2 border border-gray-300 rounded-lg task-notes-core w-full">
                                 <span id="diff-gc" class="diff-output font-semibold text-center">0</span>
                             </div>
                             <div class="target-row grid grid-cols-4 gap-2 items-center mb-2">
                                 <label for="target-ac">AC</label>
-                                <input type="number" id="target-ac" data-save="target-ac" class="target-input p-2 border border-gray-300 rounded-lg task-notes w-full">
-                                <input type="number" id="actual-ac" data-save="actual-ac" class="actual-input p-2 border border-gray-300 rounded-lg task-notes w-full">
+                                <input type="number" id="target-ac" data-save="target-ac" class="target-input p-2 border border-gray-300 rounded-lg task-notes-core w-full">
+                                <input type="number" id="actual-ac" data-save="actual-ac" class="actual-input p-2 border border-gray-300 rounded-lg task-notes-core w-full">
                                 <span id="diff-ac" class="diff-output font-semibold text-center">0</span>
                             </div>
                             <div class="target-row grid grid-cols-4 gap-2 items-center mb-2">
                                 <label for="target-crew-labor">Crew Labor</label>
-                                <input type="number" id="target-crew-labor" data-save="target-crew-labor" class="target-input p-2 border border-gray-300 rounded-lg task-notes w-full">
-                                <input type="number" id="actual-crew-labor" data-save="actual-crew-labor" class="actual-input p-2 border border-gray-300 rounded-lg task-notes w-full">
+                                <input type="number" id="target-crew-labor" data-save="target-crew-labor" class="target-input p-2 border border-gray-300 rounded-lg task-notes-core w-full">
+                                <input type="number" id="actual-crew-labor" data-save="actual-crew-labor" class="actual-input p-2 border border-gray-300 rounded-lg task-notes-core w-full">
                                 <span id="diff-crew-labor" class="diff-output font-semibold text-center">0</span>
                             </div>
                             <div class="target-row grid grid-cols-4 gap-2 items-center mb-2">
                                 <label for="target-rw">RW</label>
-                                <input type="number" id="target-rw" data-save="target-rw" class="target-input p-2 border border-gray-300 rounded-lg task-notes w-full">
-                                <input type="number" id="actual-rw" data-save="actual-rw" class="actual-input p-2 border border-gray-300 rounded-lg task-notes w-full">
+                                <input type="number" id="target-rw" data-save="target-rw" class="target-input p-2 border border-gray-300 rounded-lg task-notes-core w-full">
+                                <input type="number" id="actual-rw" data-save="actual-rw" class="actual-input p-2 border border-gray-300 rounded-lg task-notes-core w-full">
                                 <span id="diff-rw" class="diff-output font-semibold text-center">0</span>
                             </div>
                         </div>
@@ -415,26 +432,26 @@
                             <!-- Target Rows -->
                             <div class="target-row grid grid-cols-4 gap-2 items-center mb-2">
                                 <label for="target-oepe">OEPE</label>
-                                <input type="number" id="target-oepe" data-save="target-oepe" class="target-input p-2 border border-gray-300 rounded-lg task-notes w-full">
-                                <input type="number" id="actual-oepe" data-save="actual-oepe" class="actual-input p-2 border border-gray-300 rounded-lg task-notes w-full">
+                                <input type="number" id="target-oepe" data-save="target-oepe" class="target-input p-2 border border-gray-300 rounded-lg task-notes-core w-full">
+                                <input type="number" id="actual-oepe" data-save="actual-oepe" class="actual-input p-2 border border-gray-300 rounded-lg task-notes-core w-full">
                                 <span id="diff-oepe" class="diff-output font-semibold text-center">0</span>
                             </div>
                             <div class="target-row grid grid-cols-4 gap-2 items-center mb-2">
                                 <label for="target-opt">Order Prep</label>
-                                <input type="number" id="target-opt" data-save="target-opt" class="target-input p-2 border border-gray-300 rounded-lg task-notes w-full">
-                                <input type="number" id="actual-opt" data-save="actual-opt" class="actual-input p-2 border border-gray-300 rounded-lg task-notes w-full">
+                                <input type="number" id="target-opt" data-save="target-opt" class="target-input p-2 border border-gray-300 rounded-lg task-notes-core w-full">
+                                <input type="number" id="actual-opt" data-save="actual-opt" class="actual-input p-2 border border-gray-300 rounded-lg task-notes-core w-full">
                                 <span id="diff-opt" class="diff-output font-semibold text-center">0</span>
                             </div>
                             <div class="target-row grid grid-cols-4 gap-2 items-center mb-2">
                                 <label for="target-r2p">R2P</label>
-                                <input type="number" id="target-r2p" data-save="target-r2p" class="target-input p-2 border border-gray-300 rounded-lg task-notes w-full">
-                                <input type="number" id="actual-r2p" data-save="actual-r2p" class="actual-input p-2 border border-gray-300 rounded-lg task-notes w-full">
+                                <input type="number" id="target-r2p" data-save="target-r2p" class="target-input p-2 border border-gray-300 rounded-lg task-notes-core w-full">
+                                <input type="number" id="actual-r2p" data-save="actual-r2p" class="actual-input p-2 border border-gray-300 rounded-lg task-notes-core w-full">
                                 <span id="diff-r2p" class="diff-output font-semibold text-center">0</span>
                             </div>
                             <div class="target-row grid grid-cols-4 gap-2 items-center mb-2">
                                 <label for="target-cfs">CFS</label>
-                                <input type="number" id="target-cfs" data-save="target-cfs" class="target-input p-2 border border-gray-300 rounded-lg task-notes w-full">
-                                <input type="number" id="actual-cfs" data-save="actual-cfs" class="actual-input p-2 border border-gray-300 rounded-lg task-notes w-full">
+                                <input type="number" id="target-cfs" data-save="target-cfs" class="target-input p-2 border border-gray-300 rounded-lg task-notes-core w-full">
+                                <input type="number" id="actual-cfs" data-save="actual-cfs" class="actual-input p-2 border border-gray-300 rounded-lg task-notes-core w-full">
                                 <span id="diff-cfs" class="diff-output font-semibold text-center">0</span>
                             </div>
                         </div>
@@ -445,17 +462,17 @@
                     <div class="grid grid-cols-1 md:grid-cols-1 gap-6">
                         <div>
                             <h3 class="text-xl font-semibold text-gray-800 mb-3">People</h3>
-                            <input type="text" id="people-names" data-save="people-names" placeholder="Names..." class="p-2 border border-gray-300 rounded-lg task-notes w-full mb-2">
-                            <input type="text" id="people-actual" data-save="people-actual" placeholder="Actual..." class="p-2 border border-gray-300 rounded-lg task-notes w-full">
+                            <input type="text" id="people-names" data-save="people-names" placeholder="Names..." class="p-2 border border-gray-300 rounded-lg task-notes-core w-full mb-2">
+                            <input type="text" id="people-actual" data-save="people-actual" placeholder="Actual..." class="p-2 border border-gray-300 rounded-lg task-notes-core w-full">
                         </div>
                         <div>
                             <h3 class="text-xl font-semibold text-gray-800 mb-3">PM/BM Tasks</h3>
-                            <input type="text" id="tasks-fusoc" data-save="tasks-fusoc" placeholder="FUSOC..." class="p-2 border border-gray-300 rounded-lg task-notes w-full mb-2">
-                            <input type="text" id="tasks-prwr" data-save="tasks-prwr" placeholder="PR/WR..." class="p-2 border border-gray-300 rounded-lg task-notes w-full">
+                            <input type="text" id="tasks-fusoc" data-save="tasks-fusoc" placeholder="FUSOC..." class="p-2 border border-gray-300 rounded-lg task-notes-core w-full mb-2">
+                            <input type="text" id="tasks-prwr" data-save="tasks-prwr" placeholder="PR/WR..." class="p-2 border border-gray-300 rounded-lg task-notes-core w-full">
                         </div>
                         <div>
                             <h3 class="text-xl font-semibold text-gray-800 mb-3">Others</h3>
-                            <input type="text" id="tasks-others" data-save="tasks-others" placeholder="Notes..." class="p-2 border border-gray-300 rounded-lg task-notes w-full">
+                            <input type="text" id="tasks-others" data-save="tasks-others" placeholder="Notes..." class="p-2 border border-gray-300 rounded-lg task-notes-core w-full">
                         </div>
                     </div>
                 </div>
@@ -610,7 +627,7 @@
             <h3 class="text-xl font-bold mcd-text-red mb-4">Set Reminder</h3>
             <p id="reminder-task-name" class="text-gray-700 mb-4"></p>
             <label for="reminder-time" class="block text-sm font-medium text-gray-700 mb-2">Remind me in (minutes):</label>
-            <input type="number" id="reminder-time" value="15" class="p-3 border border-gray-300 rounded-lg task-notes w-full mb-4">
+            <input type="number" id="reminder-time" value="15" class="p-3 border border-gray-300 rounded-lg w-full mb-4 focus:border-yellow-400 focus:ring focus:ring-yellow-200">
             <div class="flex justify-end space-x-3">
                 <button id="cancel-reminder-btn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded-lg shadow-md">Cancel</button>
                 <button id="set-reminder-btn" class="mcd-red hover:bg-red-800 text-white font-semibold py-2 px-4 rounded-lg shadow-md">Set</button>
@@ -1643,7 +1660,13 @@
                 box.checked = false;
             });
             
+            // FIX: Use the specific .task-notes class for checklists
             document.querySelectorAll('#main-checklist-panel .task-notes').forEach(note => {
+                note.value = '';
+            });
+
+            // FIX: Use the specific .task-notes-core class for dashboard
+            document.querySelectorAll('#dashboard-panel .task-notes-core').forEach(note => {
                 note.value = '';
             });
 
@@ -1670,7 +1693,8 @@
                 shiftData[key] = box.checked;
             });
             
-            document.querySelectorAll('.task-notes').forEach(note => {
+            // FIX: Use the specific .task-notes class for checklists
+            document.querySelectorAll('#main-checklist-panel .task-notes').forEach(note => {
                 const key = `notes-${note.dataset.taskId}`;
                 if (key && note.value) { // Only save if there's a note
                     shiftData[key] = note.value;
@@ -1710,7 +1734,8 @@
                 box.checked = data[key] === true;
             });
             
-            document.querySelectorAll('.task-notes').forEach(note => {
+            // FIX: Use the specific .task-notes class for checklists
+            document.querySelectorAll('#main-checklist-panel .task-notes').forEach(note => {
                 const key = `notes-${note.dataset.taskId}`;
                 if (key && data[key] !== undefined) {
                     note.value = data[key];
@@ -1808,7 +1833,8 @@
             });
 
             const notes = [];
-            document.querySelectorAll('.task-notes').forEach(input => {
+            // FIX: Use the specific .task-notes class for checklists
+            document.querySelectorAll('#main-checklist-panel .task-notes').forEach(input => {
                 if (input.value && input.dataset.taskId) {
                     const label = document.querySelector(`label[for="check-${input.dataset.taskId}"]`);
                     if (label) {
@@ -1949,6 +1975,7 @@ Other Notes
             const openBtn = document.getElementById('open-dashboard-btn');
             const closeBtn = document.getElementById('close-dashboard-btn');
             const body = document.body;
+            const container = document.querySelector('.flex.flex-col.md\\:flex-row');
 
             // 1. Load saved state
             let savedStates = {};
@@ -1957,18 +1984,18 @@ Other Notes
             } catch (e) { console.error("Could not parse local settings", e); }
             
             if (savedStates['dashboard'] === 'closed') {
-                body.classList.add('dashboard-closed');
-                body.classList.remove('dashboard-open');
+                container.classList.add('dashboard-closed');
+                container.classList.remove('dashboard-open');
             } else {
-                body.classList.add('dashboard-open');
-                body.classList.remove('dashboard-closed');
+                container.classList.add('dashboard-open');
+                container.classList.remove('dashboard-closed');
             }
 
             // 2. Add listeners
             if (openBtn) {
                 openBtn.addEventListener('click', () => {
-                    body.classList.add('dashboard-open');
-                    body.classList.remove('dashboard-closed');
+                    container.classList.add('dashboard-open');
+                    container.classList.remove('dashboard-closed');
                     savedStates['dashboard'] = 'open';
                     localStorage.setItem(localSettingsKey, JSON.stringify(savedStates));
                 });
@@ -1976,8 +2003,8 @@ Other Notes
             
             if (closeBtn) {
                 closeBtn.addEventListener('click', () => {
-                    body.classList.add('dashboard-closed');
-                    body.classList.remove('dashboard-open');
+                    container.classList.add('dashboard-closed');
+                    container.classList.remove('dashboard-open');
                     savedStates['dashboard'] = 'closed';
                     localStorage.setItem(localSettingsKey, JSON.stringify(savedStates));
                 });
