@@ -775,6 +775,7 @@
     <script type="module">
         // --- Firebase Imports ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
         import { 
             getAuth, 
             signInAnonymously, 
@@ -800,7 +801,7 @@
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- Firebase Config ---
-        // LOGIC: Use environment config for the preview, fallback to your specific config for local use.
+        // Use environment config if available (for preview), otherwise use your specific project config
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
           apiKey: "AIzaSyBlbxhzUp_TZd8oTrLxrY-E6gq-_XdiMCo",
           authDomain: "mcdonalds-san-carlos.firebaseapp.com",
@@ -814,26 +815,25 @@
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'mcdonalds-shift-app';
 
         // --- GEMINI AI API KEY ---
-        // LOGIC: Use empty string for environment proxy (recommended for this platform).
         const apiKey = "";
         
         // --- Global App State ---
         let app, db, auth;
         let userId = 'anonymous';
         let isAuthReady = false;
-        let currentDocId = null; // <-- NEW: Track the current Firestore doc ID
+        let currentDocId = null; // Track the current Firestore doc ID
         
         // --- Data Persistence Keys ---
         const localSettingsKey = 'shiftAppLocalSettings';
 
-        // --- NEW: Shift Plan Elements ---
+        // --- Shift Plan Elements ---
         const savePlanBtn = document.getElementById('save-plan-btn');
         const planNameInput = document.getElementById('plan-name-input');
         
         // --- INIT FLAGS ---
         let isListenersInitialized = false;
 
-        // --- NEW: Firestore Shift Plans ---
+        // --- Firestore Shift Plans ---
         function initShiftPlans() {
             if (!isAuthReady || !db) return; 
             
@@ -853,8 +853,6 @@
                         const statusEl = document.getElementById('plan-results-status');
                         if(statusEl) statusEl.textContent = `Successfully saved draft!`;
                         if(document.getElementById('plan-results-container')) document.getElementById('plan-results-container').innerHTML = '';
-                        
-                        // Note: We do NOT reload leaderboard here, only on finalize
                     }
                 });
             }
@@ -873,7 +871,6 @@
                         planResultsStatus.textContent = 'Please select a date first.';
                         return;
                     }
-                    
                     performSearch(plansCollection, planResultsStatus, planResultsContainer, selectedDate);
                 });
             }
@@ -903,9 +900,7 @@
 
                         if (docSnap.exists()) {
                             const loadedData = docSnap.data().data;
-                            
-                            // Set currentDocId so subsequent saves update this doc
-                            currentDocId = docId; // <-- NEW
+                            currentDocId = docId; // Set currentDocId so subsequent saves update this doc
 
                             populateFormWithData(loadedData); 
                             showTab(localStorage.getItem('activeTab') || 'pre-shift');
@@ -945,10 +940,8 @@
             try {
                 let q;
                 if (dateFilter) {
-                    // Exact match query
                     q = query(collectionRef, where("shiftDate", "==", dateFilter));
                 } else {
-                    // Recent plans query (limit to 10 to prevent overload)
                     q = query(collectionRef, limit(10));
                 }
                 
@@ -966,9 +959,7 @@
                 let plansHtml = '<div class="flex flex-col space-y-2">';
                 querySnapshot.forEach((doc) => {
                     const plan = doc.data();
-                    // Format timestamp if available
                     let dateDisplay = plan.shiftDate || 'No Date';
-                    // Show draft/completed status
                     let statusBadge = plan.status === 'completed' 
                         ? '<span class="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded font-bold ml-2">Finalized</span>' 
                         : '<span class="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded font-bold ml-2">Draft</span>';
@@ -995,11 +986,9 @@
             }
         }
 
-        // NEW: Reusable Save Function (with Update Logic)
-        // ADDED: isFinal param to track completion status
+        // Reusable Save Function (with Update Logic)
         async function saveShiftData(isFinal = false, retryCount = 0) {
             if (!isAuthReady || !db) return false;
-            // Guard clause for auth
             if (!auth.currentUser) {
                 console.warn("Cannot save: User not authenticated yet.");
                 return false;
@@ -1012,8 +1001,8 @@
             }
             
             const planNameInput = document.getElementById('plan-name-input');
-            const shiftLeaderInput = document.getElementById('shift-leader'); // Use the updated field
-            const shiftDateInput = document.getElementById('shift-date');     // Use the updated field
+            const shiftLeaderInput = document.getElementById('shift-leader'); 
+            const shiftDateInput = document.getElementById('shift-date');     
 
             const planName = planNameInput.value.trim();
             const shiftDate = shiftDateInput.value;
@@ -1061,7 +1050,7 @@
                         name: planNameInput.value,
                         author: author,
                         shiftDate: shiftDate,
-                        status: status, // Save status
+                        status: status, 
                         data: currentData,
                         updatedAt: serverTimestamp()
                     });
@@ -1072,11 +1061,11 @@
                         name: planNameInput.value,
                         author: author,
                         shiftDate: shiftDate,
-                        status: status, // Save status
+                        status: status, 
                         data: currentData,
                         createdAt: serverTimestamp()
                     });
-                    currentDocId = docRef.id; // Save the new ID
+                    currentDocId = docRef.id; 
                     console.log("Created new shift:", currentDocId);
                 }
                 
@@ -1106,7 +1095,7 @@
         }
 
 
-        // --- NEW: Leaderboard Logic (Aggregated) ---
+        // --- Leaderboard Logic (Aggregated) ---
         async function initLeaderboard() {
             if (!isAuthReady || !db) return;
 
@@ -1118,12 +1107,10 @@
             loadLeaderboard();
         }
 
-        // NEW: Helper to calculate percentages for the leaderboard
         function calculateShiftPercentages(data) {
             const val = (key) => parseFloat(data[key]) || 0;
             
             // WEIGHTS CONFIGURATION
-            // Updated Checklist to 15 so Total = 100
             const weights = {
                 sales: 15,
                 gc: 10,
@@ -1132,43 +1119,31 @@
                 oepe: 15,
                 r2p: 15,
                 cfs: 10,
-                checklist: 15 // Updated from 10
+                checklist: 15 
             };
 
             // Helper for Weighted Calculation
             const calcWeighted = (actual, target, weight, isLowerBetter) => {
-                // If no target, no points
                 if (target === undefined || target === null || isNaN(target) || target === "" || target == 0) return 0;
                 
                 let achievementRatio = 0;
 
                 if (isLowerBetter) {
-                    // Lower is better (Waste, OEPE, R2P)
-                    // If actual is 0 (perfect waste/time?), gives full points. 
                     if (actual === 0) {
                         achievementRatio = 1; 
                     } else if (actual <= target) {
-                        achievementRatio = 1; // Met or beat target
+                        achievementRatio = 1; 
                     } else {
-                        // Missed target. Achievement decreases as actual grows.
-                        // Formula: Target / Actual
                         achievementRatio = target / actual;
                     }
                 } else {
-                    // Higher is better (Sales, GC, AC, CFS)
                     if (actual >= target) {
-                        achievementRatio = 1; // Met or beat target
+                        achievementRatio = 1; 
                     } else {
-                        // Missed target.
-                        // Formula: Actual / Target
                         achievementRatio = actual / target;
                     }
                 }
-
-                // Cap ratio at 0 and 1
                 achievementRatio = Math.min(Math.max(achievementRatio, 0), 1);
-
-                // Return calculated points
                 return parseFloat((achievementRatio * weight).toFixed(2));
             };
 
@@ -1202,22 +1177,19 @@
 
         async function loadLeaderboard(retryCount = 0) {
              const tbody = document.getElementById('leaderboard-body');
-             const headerTitle = document.querySelector('#tab-leaderboard h2'); // Get the header element
+             const headerTitle = document.querySelector('#tab-leaderboard h2'); 
              if(!tbody) return;
              
              if (!auth.currentUser) {
-                 console.log("Waiting for auth to load leaderboard...");
                  return;
              }
 
-             // --- NEW: MONTHLY FILTER LOGIC ---
+             // MONTHLY FILTER LOGIC
              const now = new Date();
-             // Get current month in YYYY-MM format for filtering
              const currentYear = now.getFullYear();
              const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
              const currentMonthKey = `${currentYear}-${currentMonth}`;
              
-             // Get Month Name for Display (e.g., "November 2025")
              const monthName = now.toLocaleString('default', { month: 'long', year: 'numeric' });
 
              if (headerTitle) {
@@ -1226,7 +1198,6 @@
              }
              
              if (retryCount === 0) {
-                 // Update header to show all new columns
                  const thead = document.querySelector('#tab-leaderboard thead tr');
                  if(thead) {
                      thead.innerHTML = `
@@ -1248,23 +1219,19 @@
              
              try {
                 const plansCollection = collection(db, 'artifacts', appId, 'public', 'data', 'shift_plans');
-                // We fetch more docs to ensure we catch all of this month's shifts even if they aren't the absolute most recent 100 global updates
                 const q = query(plansCollection, limit(200)); 
                 
                 const snapshot = await getDocs(q);
                 
-                // Aggregation
                 let aggregatedStats = {};
 
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     const manager = data.author || 'Unknown';
                     
-                    // CRITICAL: Only include COMPLETED shifts
                     if(data.status !== 'completed') return;
                     if(manager === 'Unknown' || !manager) return;
 
-                    // CRITICAL: MONTHLY FILTER
                     // Ensure the shift date starts with "YYYY-MM"
                     if (!data.shiftDate || !data.shiftDate.startsWith(currentMonthKey)) {
                         return; // Skip shifts not in this month
@@ -1314,7 +1281,6 @@
                     };
                 });
 
-                // Sort by Overall Score
                 leaderboardArray.sort((a, b) => b.overall - a.overall);
                 
                 if(leaderboardArray.length === 0) {
@@ -1330,9 +1296,8 @@
                     if(rank === 2) rankClass = 'rank-2';
                     if(rank === 3) rankClass = 'rank-3';
                     
-                    // Helper for visual
                     const cell = (val, max) => {
-                        const isMax = Math.abs(val - max) < 0.1; // float tolerance
+                        const isMax = Math.abs(val - max) < 0.1; 
                         if (isMax) return `<span class="text-green-600 font-extrabold text-xs">${val}</span>`;
                         return `<span class="text-gray-600 font-medium text-xs">${val}</span>`;
                     };
@@ -1400,10 +1365,8 @@
             if(val('target-gc') > 0 && val('actual-gc') >= val('target-gc')) score += 10;
             if(val('target-ac') > 0 && val('actual-ac') >= val('target-ac')) score += 10;
             
-            // RW: Lower is better. Target 0 usually.
             const rwTarget = val('target-rw');
             const rwActual = val('actual-rw');
-            // Logic: If target is set, stay under it. If target is 0, actual must be 0.
             if(rwActual <= rwTarget) score += 10;
 
             if(val('target-r2p') > 0 && val('actual-r2p') <= val('target-r2p')) score += 10;
@@ -1424,7 +1387,6 @@
         }
 
 
-        // --- SCRIPT CONTENT COPIED FROM shift_management_app.html ---
         // RESTORED FULL TASK LISTS
         const preShiftTasks = [
             {
@@ -1521,7 +1483,7 @@
             }
         ];
         
-        // --- UPDATED: Empty during shift tasks as requested ---
+        // Empty during shift tasks as requested
         const duringShiftTasks = [];
         
         const travelPathTasks = [
@@ -1685,12 +1647,10 @@
             }
         ];
         
-        const postShiftTasks = [
-            // Removed "Post Shift Analysis" and "To Do List" tasks per user request.
-        ];
+        const postShiftTasks = [];
 
 
-        // --- Utility Functions (for Shift Mgt) ---
+        // --- Utility Functions ---
         function createSlug(text) {
             if (typeof text !== 'string') { return ''; }
             return text.toLowerCase()
@@ -1774,9 +1734,6 @@
             if(travelPathContainer) travelPathContainer.innerHTML = travelPathTasks.map(section => createAccordionSection(section.title, section.tasks)).join('');
             if(postShiftContainer) postShiftContainer.innerHTML = postShiftTasks.map(section => createAccordionSection(section.title, section.tasks)).join('');
 
-            // We are using window.toggleAccordion inline now, so no need to add listeners here for headers
-            
-            // Collapse/Expand all buttons still need listeners though
             document.querySelectorAll('.collapse-section-btn').forEach(button => {
                 button.addEventListener('click', (e) => {
                     const accordionItem = e.target.closest('.accordion-item');
@@ -1791,14 +1748,12 @@
             });
         }
         
-        // Add these to window scope for inline onclicks
         window.toggleAccordion = function(header) {
             const content = header.nextElementSibling;
             const arrow = header.querySelector('.accordion-arrow');
             
             if (content.classList.contains('hidden')) {
                 content.classList.remove('hidden');
-                // Small delay to allow transition if we added one, but currently using class switching
                 setTimeout(() => content.classList.add('open'), 10);
                 arrow.classList.add('open');
             } else {
@@ -1809,13 +1764,10 @@
         };
 
         window.toggleSectionTasks = function(sectionSlug, checkState) {
-            // Find all checkboxes within this section
-            // We need a way to identify them. We added data-section="${sectionSlug}" to inputs.
             const checkboxes = document.querySelectorAll(`input[type="checkbox"][data-section="${sectionSlug}"]`);
             checkboxes.forEach(cb => {
                 cb.checked = checkState;
             });
-            // Trigger update
             updateCurrentShiftScore();
         };
         
@@ -1864,17 +1816,14 @@
                 if (travelPathTimerId) {
                     clearTimeout(travelPathTimerId);
                     travelPathTimerId = null;
-                    console.log("Travel Path Timer stopped.");
                 }
             }
 
             function startTravelPathTimer() {
                 stopTravelPathTimer();
-                // Function to run the alarm
                 function runAlarm() {
                     const isChecked = document.getElementById('travel-path-alarm-toggle')?.checked;
                     if (isChecked) {
-                        console.log("Firing 30-min Travel Path Notification");
                         new Notification("McDonald's Shift Manager", {
                             body: "Time to do your 30-minute travel path!",
                             icon: "https://placehold.co/192x192/c00000/ffc72c?text=M"
@@ -1884,7 +1833,6 @@
                         stopTravelPathTimer();
                     }
                 }
-                console.log("Travel Path Timer started (30 min).");
                 travelPathTimerId = setTimeout(runAlarm, 30 * 60 * 1000);
             }
 
@@ -1892,7 +1840,6 @@
                 setReminderBtn.addEventListener('click', () => {
                     const minutes = parseInt(reminderTimeInput.value, 10);
                     if (isNaN(minutes) || minutes <= 0) {
-                        console.warn("Please enter a valid number of minutes.");
                         reminderTimeInput.focus();
                         reminderTimeInput.classList.add('border-red-500');
                         return;
@@ -1919,14 +1866,12 @@
                 if (!travelPathAlarm) return;
 
                 if (!("Notification" in window)) {
-                    console.warn("This browser does not support desktop notification. Alarm disabled.");
                     travelPathAlarm.disabled = true;
                     if (label) label.classList.add('text-gray-400');
                     return;
                 }
 
                 if (Notification.permission === "denied") {
-                    console.warn("Notification permission is denied. Alarm is disabled.");
                     travelPathAlarm.disabled = true;
                     travelPathAlarm.checked = false;
                     if (label) label.classList.add('text-gray-400');
@@ -1948,7 +1893,6 @@
                                 if (permission === "granted") {
                                     startTravelPathTimer();
                                 } else {
-                                    console.warn("User denied notification permission.");
                                     travelPathAlarm.checked = false;
                                     checkNotificationPermission(); 
                                 }
@@ -1962,7 +1906,6 @@
         }
 
         function setupTargetCalculations() {
-            // Attach input listener to sales for auto RW calculation
             setupAutoTargets();
 
             document.querySelectorAll('.target-row').forEach(row => {
@@ -1977,7 +1920,6 @@
                     
                     if (diffOutput) {
                         diffOutput.textContent = diff.toFixed(0);
-                        // This logic is generic; AI summary has the specific logic
                         if (diff < 0) {
                             diffOutput.classList.remove('text-green-600');
                             diffOutput.classList.add('text-red-600');
@@ -1988,7 +1930,7 @@
                             diffOutput.classList.remove('text-red-600', 'text-green-600');
                         }
                     }
-                    updateCurrentShiftScore(); // <-- NEW: Update score on input change
+                    updateCurrentShiftScore(); 
                 };
                 
                 if (targetInput) targetInput.addEventListener('input', calculateDiff);
@@ -2014,19 +1956,16 @@
                 salesInput.addEventListener('input', () => {
                     const sales = parseFloat(salesInput.value);
                     if (!isNaN(sales)) {
-                        // 0.15% calculation
                         const rwTarget = (sales * 0.0015).toFixed(2);
                         rwInput.value = rwTarget;
-                        // Trigger input event so any downstream logic (like score calc) runs
                         rwInput.dispatchEvent(new Event('input'));
                     }
                 });
             }
         }
 
-        // --- NEW: Score Calculation Logic & Progress Bar Updates ---
+        // --- Score Calculation Logic & Progress Bar Updates ---
         function updateCurrentShiftScore() {
-            // 1. Global Score Logic (Existing)
             let score = 0;
             const maxScore = 100;
 
@@ -2083,8 +2022,7 @@
                 else scoreDisplay.className = "text-5xl font-extrabold mcd-text-red";
             }
 
-            // 2. NEW: Section Progress Bar Updates
-            // We need to find unique sections
+            // 2. Section Progress Bar Updates
             const uniqueSections = new Set();
             document.querySelectorAll('.task-checkbox').forEach(cb => {
                 if(cb.dataset.section) uniqueSections.add(cb.dataset.section);
@@ -2105,7 +2043,6 @@
                 
                 if(progressBar) {
                     progressBar.style.width = `${percentage}%`;
-                    // Change color based on completeness
                     if(percentage === 100) {
                         progressBar.classList.remove('bg-mcd-yellow');
                         progressBar.classList.add('bg-green-500');
@@ -2127,7 +2064,7 @@
             });
         }
         
-        // --- Tab Navigation (for Shift Mgt) ---
+        // --- Tab Navigation ---
         function showTab(tabId) {
             try {
                 document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
@@ -2150,8 +2087,6 @@
                     tabToShow.classList.remove('hidden');
                     btnToActivate.classList.add('active-tab');
                     localStorage.setItem('activeTab', idToSave);
-                } else {
-                    console.error("CRITICAL: Default tab not found.");
                 }
             } catch (e) {
                 console.error("Error in showTab:", e);
@@ -2164,7 +2099,6 @@
             const container = document.getElementById('travel-path-report-container');
             if (!container) return;
             
-            console.log("--- Generating Pre-Shift Focus List (DOM Scan) ---");
             let reportHtml = '';
             let itemsFound = 0;
             
@@ -2173,19 +2107,16 @@
             
             preShiftAccordions.forEach(accordion => {
                 const sectionTitle = accordion.querySelector('h3')?.innerText || 'Unnamed Section';
-                // Strip badge text if present
                 const cleanTitle = sectionTitle.replace("DONE", "").trim();
                 
                 let sectionTasksHtml = '';
                 
-                // 2. Find all task items within this accordion
                 const tasks = accordion.querySelectorAll('.task-item');
                 tasks.forEach(task => {
                     const checkbox = task.querySelector('.task-checkbox');
                     const label = task.querySelector('label');
                     const notes = task.querySelector('.task-notes');
                     
-                    // --- FIX: Logic is ONLY if unchecked ---
                     if (checkbox && label && !checkbox.checked) {
                         itemsFound++;
                         const taskText = label.textContent || 'Unnamed Task';
@@ -2203,7 +2134,6 @@
                     }
                 });
                 
-                // 3. If tasks were found for this section, add the whole section to the report
                 if (sectionTasksHtml) {
                     reportHtml += `
                         <div class="mb-6 bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
@@ -2214,7 +2144,6 @@
                 }
             });
             
-            console.log(`Found ${itemsFound} items.`);
             container.innerHTML = itemsFound === 0 ? '<div class="p-6 bg-green-50 border border-green-200 rounded-lg text-center"><p class="text-green-700 font-bold text-lg">✅ All pre-shift tasks are complete!</p><p class="text-green-600 text-sm">Great job setting up the shift.</p></div>' : reportHtml;
         }
 
@@ -2222,7 +2151,6 @@
             const container = document.getElementById('travel-path-todo-list-container');
             if (!container) return;
             
-            console.log("--- Generating Travel Path ToDo List (DOM Scan) ---");
             let reportHtml = '';
             let itemsFound = 0;
             
@@ -2234,14 +2162,12 @@
                 const cleanTitle = sectionTitle.replace("DONE", "").trim();
                 let sectionTasksHtml = '';
                 
-                // 2. Find all task items within this accordion
                 const tasks = accordion.querySelectorAll('.task-item');
                 tasks.forEach(task => {
                     const checkbox = task.querySelector('.task-checkbox');
                     const label = task.querySelector('label');
                     const notes = task.querySelector('.task-notes');
                     
-                    // --- FIX: Logic is ONLY if unchecked ---
                     if (checkbox && label && !checkbox.checked) {
                         itemsFound++;
                         const taskText = label.textContent || 'Unnamed Task';
@@ -2259,7 +2185,6 @@
                     }
                 });
                 
-                // 3. If tasks were found for this section, add the whole section to the report
                 if (sectionTasksHtml) {
                     reportHtml += `
                         <div class="mb-6 bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
@@ -2270,7 +2195,6 @@
                 }
             });
             
-            console.log(`Found ${itemsFound} items.`);
             container.innerHTML = itemsFound === 0 ? '<div class="p-6 bg-green-50 border border-green-200 rounded-lg text-center"><p class="text-green-700 font-bold text-lg">✅ Travel Path is clear!</p><p class="text-green-600 text-sm">Excellent standards maintained.</p></div>' : reportHtml;
         }
 
@@ -2333,10 +2257,9 @@
             if(defaultSubTabContent) defaultSubTabContent.classList.remove('hidden');
         }
 
-        // --- NEW: FIRESTORE SHIFT MANAGEMENT FUNCTIONS ---
+        // --- FIRESTORE SHIFT MANAGEMENT FUNCTIONS ---
 
         function clearShiftForm() {
-            // FIX: Use the specific .dashboard-input class for dashboard inputs
             document.querySelectorAll('#tab-shift-plans .dashboard-input, #tab-shift-targets .dashboard-input').forEach(input => {
                 if (input.type === 'checkbox' || input.type === 'radio') {
                     input.checked = false;
@@ -2349,7 +2272,6 @@
                 box.checked = false;
             });
             
-            // FIX: Use the specific .task-notes class for checklists
             document.querySelectorAll('.task-notes').forEach(note => {
                 note.value = '';
             });
@@ -2359,7 +2281,6 @@
                 diff.classList.remove('text-red-600', 'text-green-600');
             });
             
-            // Reset score and current doc ID
             updateCurrentShiftScore();
             currentDocId = null;
         }
@@ -2367,7 +2288,6 @@
         function scrapeDataFromForm() {
             const shiftData = {};
 
-            // Get all data-save inputs (now includes dashboard AND alarm toggle)
             document.querySelectorAll('[data-save]').forEach(input => {
                 const key = input.dataset.save;
                 if (input.type === 'checkbox') {
@@ -2382,10 +2302,9 @@
                 shiftData[key] = box.checked;
             });
             
-            // FIX: Use the specific .task-notes class for checklists
             document.querySelectorAll('.task-notes').forEach(note => {
                 const key = `notes-${note.dataset.taskId}`;
-                if (key && note.value) { // Only save if there's a note
+                if (key && note.value) { 
                     shiftData[key] = note.value;
                 }
             });
@@ -2394,14 +2313,10 @@
         }
 
         function populateFormWithData(data) {
-            if (!data) {
-                console.warn("No data provided to populate form.");
-                return;
-            }
+            if (!data) return;
             
             clearShiftForm();
 
-            // Set all data-save inputs
             document.querySelectorAll('[data-save]').forEach(input => {
                 const key = input.dataset.save;
                 if (data[key] !== undefined) {
@@ -2424,7 +2339,6 @@
                 box.checked = data[key] === true;
             });
             
-            // FIX: Use the specific .task-notes class for checklists
             document.querySelectorAll('.task-notes').forEach(note => {
                 const key = `notes-${note.dataset.taskId}`;
                 if (key && data[key] !== undefined) {
@@ -2432,11 +2346,10 @@
                 }
             });
             
-            // Recalculate score after loading
             updateCurrentShiftScore();
         }
 
-        // --- NEW: AI SUMMARY FUNCTIONS ---
+        // --- AI SUMMARY FUNCTIONS ---
         const generateSummaryBtn = document.getElementById('generate-summary-btn');
         const loadingModalBg = document.getElementById('ai-loading-modal-bg');
         const loadingModal = document.getElementById('ai-loading-modal');
@@ -2494,7 +2407,6 @@
         }
         
         function showFinalizeModal() {
-            // Pre-fill with current values
             const currentName = document.getElementById('shift-leader').value;
             const currentDate = document.getElementById('shift-date').value;
             
@@ -2518,9 +2430,7 @@
             }, 300);
         }
 
-        // --- Event Listeners ---
         if (generateSummaryBtn) {
-            // Instead of directly handling, show the modal first
             generateSummaryBtn.addEventListener('click', showFinalizeModal);
         }
         
@@ -2530,7 +2440,6 @@
         
         if (continueSummaryBtn) {
             continueSummaryBtn.addEventListener('click', () => {
-                // 1. Validate Modal Inputs
                 const name = finalizeName.value.trim();
                 const date = finalizeDate.value;
                 
@@ -2539,14 +2448,11 @@
                     return;
                 }
                 
-                // 2. Update Main Form (so saveShiftData picks it up)
                 document.getElementById('shift-leader').value = name;
                 document.getElementById('shift-date').value = date;
                 
-                // 3. Close this modal
                 hideFinalizeModal();
                 
-                // 4. Trigger the actual generation process
                 handleGenerateSummary();
             });
         }
@@ -2574,7 +2480,6 @@
         async function handleGenerateSummary() {
             showLoadingModal();
             
-            // 0. Auto-save data first as COMPLETED
             const saveSuccess = await saveShiftData(true);
             
             if (!saveSuccess) {
@@ -2582,7 +2487,6 @@
                 return;
             }
             
-            // Refresh leaderboard immediately
             await loadLeaderboard();
 
             // 1. Scrape data
@@ -2621,7 +2525,6 @@
                 "Other Notes": document.getElementById('tasks-others').value,
             };
 
-            // 2. Create Prompt
             const systemPrompt = `
 You are an expert McDonald's Shift Manager writing a handover summary.
 Your goal is to be professional, clean, and highly organized.
@@ -2721,11 +2624,11 @@ Other Notes
             }
         }
 
-        // --- App Initialization (ONE listener for all) ---
+        // --- App Initialization ---
         async function main() {
-            // 1. Initialize Firebase
             try {
                 app = initializeApp(firebaseConfig);
+                const analytics = getAnalytics(app);
                 db = getFirestore(app);
                 auth = getAuth(app);
             } catch (e) {
@@ -2734,13 +2637,10 @@ Other Notes
                 return;
             }
 
-            // 2. Handle Authentication
             onAuthStateChanged(auth, (user) => {
                 if (user) {
                     userId = user.uid;
                     isAuthReady = true;
-                    console.log("Auth ready. UserID:", userId);
-                    // Add timeout to ensure token is fully ready
                     setTimeout(() => {
                         initShiftPlans();
                         initLeaderboard(); 
@@ -2749,7 +2649,6 @@ Other Notes
             });
 
             try {
-                // Check for token passed from environment
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     await signInWithCustomToken(auth, __initial_auth_token);
                 } else {
@@ -2760,22 +2659,20 @@ Other Notes
                 userId = crypto.randomUUID();
                 isAuthReady = true;
                 initShiftPlans();
-                initLeaderboard(); // <-- NEW
+                initLeaderboard(); 
             }
             
-            // 3. Initialize Shift Management UI
             try {
                 setupAccordions();
                 setupReminders();
                 setupTargetCalculations();
                 setupAccordionControls(); 
                 setupTravelPathSubTabs();
-                setupScoreListeners(); // Initialize score listeners
+                setupScoreListeners();
             } catch (e) {
                 console.error("Error initializing shift management UI:", e);
             }
 
-            // 4. Initialize tab states
             const validTabIds = ['leaderboard', 'shift-plans', 'shift-targets', 'pre-shift', 'during-shift', 'travel-path', 'post-shift'];
             let lastTab = localStorage.getItem('activeTab');
             if (!lastTab || !validTabIds.includes(lastTab)) {
@@ -2789,7 +2686,6 @@ Other Notes
                 });
             });
             
-            // 5. Initialize refresh buttons
             const refreshTravelPathBtn = document.getElementById('refresh-travel-path-btn');
             if (refreshTravelPathBtn) {
                 refreshTravelPathBtn.addEventListener('click', generateTravelPathReport);
@@ -2801,16 +2697,12 @@ Other Notes
             }
         }
         
-        // Add this line to expose the function to the global scope
         window.updateCurrentShiftScore = updateCurrentShiftScore;
 
         function setupScoreListeners() {
-            // Only need to call setupTargetCalculations, as it attaches listeners to all target inputs
-            // which then call updateCurrentShiftScore.
-            // Checkbox listeners are added inline in the HTML generation function (createTaskItem).
+            // Only need to call setupTargetCalculations
         }
 
-        // Run the app
         main();
 
     </script>
