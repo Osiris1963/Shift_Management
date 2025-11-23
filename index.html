@@ -800,9 +800,9 @@
             serverTimestamp 
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- Firebase Config ---
-        // Use environment config if available (for preview), otherwise use your specific project config
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+        // --- Firebase Config (DIRECT CONNECTION) ---
+        // Forced to use your specific project config always
+        const firebaseConfig = {
           apiKey: "AIzaSyBlbxhzUp_TZd8oTrLxrY-E6gq-_XdiMCo",
           authDomain: "mcdonalds-san-carlos.firebaseapp.com",
           projectId: "mcdonalds-san-carlos",
@@ -812,8 +812,6 @@
           measurementId: "G-QTSC1B9PD5"
         };
         
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'mcdonalds-shift-app';
-
         // --- GEMINI AI API KEY ---
         const apiKey = "";
         
@@ -840,9 +838,8 @@
             // Guard clause: prevent double listeners
             if(isListenersInitialized) return;
 
-            // RULE 1 compliant paths
-            const plansCollectionPath = `artifacts/${appId}/public/data/shift_plans`;
-            const plansCollection = collection(db, 'artifacts', appId, 'public', 'data', 'shift_plans');
+            // DIRECT PATH: Root 'shift_plans' collection
+            const plansCollection = collection(db, 'shift_plans');
 
             // 1. Save Current Plan
             if (savePlanBtn) {
@@ -895,7 +892,8 @@
                     loadButton.disabled = true;
 
                     try {
-                        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'shift_plans', docId);
+                        // DIRECT PATH
+                        const docRef = doc(db, 'shift_plans', docId);
                         const docSnap = await getDoc(docRef);
 
                         if (docSnap.exists()) {
@@ -930,7 +928,15 @@
         async function performSearch(collectionRef, statusEl, containerEl, dateFilter) {
             // Guard clause for auth
             if (!auth.currentUser) {
-                statusEl.textContent = 'Waiting for authentication...';
+                // IMPROVED ERROR HANDLING:
+                // If we are 'ready' but have no user, it means auth failed (likely disabled in console)
+                if (isAuthReady) {
+                     statusEl.innerHTML = `<span class="text-red-600 font-bold">Authentication Error:</span><br>
+                     Could not sign in. Please ensure <strong>Anonymous Auth</strong> is enabled in the Firebase Console.<br>
+                     (Build > Authentication > Sign-in method > Anonymous)`;
+                } else {
+                    statusEl.textContent = 'Waiting for authentication... (Initializing)';
+                }
                 return;
             }
             
@@ -1041,11 +1047,12 @@
             const status = isFinal ? 'completed' : 'draft';
             
             try {
-                const plansCollection = collection(db, 'artifacts', appId, 'public', 'data', 'shift_plans');
+                // DIRECT PATH
+                const plansCollection = collection(db, 'shift_plans');
                 
                 if (currentDocId) {
                     // Update existing document
-                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'shift_plans', currentDocId);
+                    const docRef = doc(db, 'shift_plans', currentDocId);
                     await updateDoc(docRef, {
                         name: planNameInput.value,
                         author: author,
@@ -1054,7 +1061,7 @@
                         data: currentData,
                         updatedAt: serverTimestamp()
                     });
-                    console.log("Updated existing shift:", currentDocId);
+                    console.log(`%c[SAVE SUCCESS] Updated existing shift: ${currentDocId}`, "color: green; font-weight: bold;");
                 } else {
                     // Create new document
                     const docRef = await addDoc(plansCollection, {
@@ -1066,7 +1073,7 @@
                         createdAt: serverTimestamp()
                     });
                     currentDocId = docRef.id; 
-                    console.log("Created new shift:", currentDocId);
+                    console.log(`%c[SAVE SUCCESS] Created new shift: ${currentDocId}`, "color: green; font-weight: bold;");
                 }
                 
                 // Success
@@ -1218,7 +1225,9 @@
              }
              
              try {
-                const plansCollection = collection(db, 'artifacts', appId, 'public', 'data', 'shift_plans');
+                // DIRECT PATH
+                const plansCollection = collection(db, 'shift_plans');
+                
                 const q = query(plansCollection, limit(200)); 
                 
                 const snapshot = await getDocs(q);
@@ -2649,15 +2658,24 @@ Other Notes
             });
 
             try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
+                // FIX: The __initial_auth_token provided by the preview environment is for the sandbox project.
+                // Since we are connecting directly to 'mcdonalds-san-carlos', that token causes a mismatch error.
+                // We skip custom token auth and go straight to Anonymous Auth for your project.
+                console.log("Attempting Anonymous Auth to mcdonalds-san-carlos...");
+                await signInAnonymously(auth);
             } catch (e) {
                 console.error("Authentication failed:", e);
-                userId = crypto.randomUUID();
-                isAuthReady = true;
+                
+                // Log specific advice for common anonymous auth errors
+                if (e.code === 'auth/operation-not-allowed') {
+                    console.warn("Enable Anonymous Auth in Firebase Console > Authentication > Sign-in method.");
+                } else if (e.code === 'auth/unauthorized-domain') {
+                    console.warn("Add this domain to Firebase Console > Authentication > Settings > Authorized domains.");
+                }
+
+                // Mark auth as ready (even if failed) so UI doesn't hang, but data won't load.
+                isAuthReady = true; 
+                
                 initShiftPlans();
                 initLeaderboard(); 
             }
