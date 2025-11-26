@@ -4,16 +4,10 @@
   "engines": {
     "node": "18"
   },
-  "dependencies": {
-    "@google/genai": "^0.15.0",
-    "cors": "^2.8.5",
-    "firebase-functions": "^4.9.0"
-  },
-  "devDependencies": {
-    "firebase-functions-test": "^3.1.0"
-  },
+// ... dependencies list ...
   "main": "index.js",
   "scripts": {
-    "start": "firebase emulators:start"
+    "start": "firebase emulators:start" // <-- The 'lint' script is correctly removed!
   }
 }
+```
