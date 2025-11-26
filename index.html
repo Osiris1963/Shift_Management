@@ -19,6 +19,7 @@
         .mcd-red { background-color: #c00000; }
         .mcd-text-red { color: #c00000; }
         .mcd-yellow { background-color: #ffc72c; }
+        .mcd-text-yellow { color: #ffc72c; }
         .mcd-green { color: #22c55e; }
         .mcd-gray { color: #9ca3af; }
         
@@ -40,7 +41,8 @@
             letter-spacing: 0.025em;
             border-bottom: 3px solid transparent;
             padding: 1rem;
-            white-space: nowrap;
+            flex-shrink: 0; /* Important: prevents buttons from shrinking on mobile */
+            min-width: 120px; /* Ensure enough space for text */
         }
         .tab-btn:hover {
             background-color: #f9fafb; /* gray-50 */
@@ -92,12 +94,40 @@
             transform: rotate(180deg);
         }
 
-        /* Task Item */
+        /* Task Item Layout Control */
         .task-item {
             border-bottom: 1px solid #e5e7eb;
+            display: grid;
+            grid-template-columns: 1fr; /* Stacked by default */
+            padding: 0.75rem 0;
+            gap: 0.5rem;
         }
         .task-item:last-child {
             border-bottom: none;
+        }
+        
+        /* Task Description and Checkbox row */
+        .task-main-row {
+            display: flex;
+            align-items: flex-start;
+            flex-grow: 1;
+        }
+
+        /* Task Note and Reminder Row */
+        .task-note-row {
+            display: flex;
+            align-items: center;
+            padding-left: 1.8rem; /* Align note under the checkbox/label starting point */
+        }
+
+        @media (min-width: 768px) {
+             .task-item {
+                grid-template-columns: 1fr; /* Keep it stacked for space efficiency */
+                gap: 0.25rem;
+            }
+             .task-note-row {
+                padding-left: 1.8rem; /* Maintain alignment */
+            }
         }
         
         /* Custom Checkbox */
@@ -128,6 +158,14 @@
         }
         
         /* Notes Input */
+        .task-notes {
+            flex-grow: 1;
+            max-width: 100%;
+            padding: 0.25rem 0.5rem; /* Reduced padding for smaller footprint */
+            border: 1px solid #e5e7eb;
+            border-radius: 0.25rem;
+            transition: all 0.2s;
+        }
         .task-notes:focus,
         .dashboard-input:focus {
             border-color: #ffc72c;
@@ -135,7 +173,7 @@
             box-shadow: 0 0 0 2px rgba(255, 199, 44, 0.4);
         }
         
-        /* Reminder Modal */
+        /* Modal Transitions */
         #reminder-modal-bg,
         #ai-loading-modal-bg,
         #ai-result-modal-bg,
@@ -199,49 +237,90 @@
             transform: translateX(26px);
         }
 
-        /* Sticky Tab Header */
+        /* Sticky Tab Header - Ensure it scrolls horizontally */
         #tab-header {
             position: sticky;
             top: 0;
-            background-color: #f3f4f6; /* Match body bg */
+            background-color: #f3f4f6;
             z-index: 10; 
             box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
-            overflow-x: auto; /* Allow scrolling on small screens */
+            overflow-x: auto; /* CRITICAL for mobile tabs */
+            white-space: nowrap; /* Ensures buttons stay in a single row */
+        }
+        #tab-header > button {
+             /* Remove flex-grow to allow horizontal scrolling */
+             flex-shrink: 0; 
         }
 
-        /* Target Grid Styles */
+        /* Target Grid Styles (Mobile-first: Stacked) */
         .target-header-grid {
             display: none; /* Hide header on mobile */
         }
         .target-row {
-            grid-template-columns: 1fr 1fr; /* 2 cols for inputs */
+            /* On mobile, use three columns: Label, Input 1, Input 2, then diff spans */
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 0.75rem; /* Increased gap for touch targets */
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #e5e7eb;
+            align-items: end;
         }
         .target-row-label {
-            grid-column: 1 / -1; /* Label spans full width */
-            margin-bottom: 0.25rem;
-            font-weight: 500;
+            grid-column: 1 / span 1; /* Label spans only the first column */
+            margin-bottom: 0;
+            font-weight: 600;
+            color: #1f2937;
+            align-self: center;
+            font-size: 0.95rem; /* Slightly larger text on mobile */
+        }
+        .target-row .target-input {
+             grid-column: 2 / 3;
+             font-size: 0.875rem;
+        }
+        .target-row .actual-input {
+             grid-column: 1 / 3;
+             font-size: 0.875rem;
+             margin-top: 0.5rem;
+             text-align: center;
         }
         .target-row-diff {
-            grid-column: 1 / -1; /* Diff spans full width */
+            grid-column: 1 / -1; /* Diff spans full width on mobile */
             text-align: center;
-            font-weight: 600;
-            padding-top: 0.25rem;
-            margin-top: 0.25rem;
-            border-top: 1px solid #e5e7eb;
+            font-weight: 700;
+            padding-top: 0.5rem;
+            margin-top: 0.5rem;
+            border-top: 1px dashed #e5e7eb;
+            font-size: 1rem;
         }
         
         /* Desktop override for targets */
         @media (min-width: 768px) {
             .target-header-grid {
                 display: grid; /* Show header on desktop */
-                grid-template-columns: repeat(4, 1fr);
+                grid-template-columns: 2fr 1fr 1fr 1fr; /* Custom widths for label/inputs/diff */
+                gap: 1rem;
+                padding-bottom: 0.5rem;
+                border-bottom: 2px solid #e5e7eb;
             }
              .target-row {
-                grid-template-columns: repeat(4, 1fr); /* 4 cols on desktop */
+                grid-template-columns: 2fr 1fr 1fr 1fr; /* 4 cols on desktop */
+                gap: 1rem;
+                padding: 0.5rem 0;
+                align-items: center;
             }
             .target-row-label {
                 grid-column: auto; /* Reset span */
                 margin-bottom: 0;
+                align-self: center;
+            }
+            .target-row .target-input {
+                 grid-column: auto;
+                 margin-top: 0;
+                 text-align: left;
+            }
+             .target-row .actual-input {
+                 grid-column: auto;
+                 margin-top: 0;
+                 text-align: left;
             }
             .target-row-diff {
                 grid-column: auto; /* Reset span */
@@ -263,10 +342,46 @@
             font-weight: bold;
             font-size: 0.9rem;
         }
-        .rank-1 { background-color: #FFD700; color: white; }
-        .rank-2 { background-color: #C0C0C0; color: white; }
+        .rank-1 { background-color: #FFD700; color: #111827; } /* Gold, darker text for readability */
+        .rank-2 { background-color: #C0C0C0; color: #111827; }
         .rank-3 { background-color: #CD7F32; color: white; }
         .rank-other { background-color: #F3F4F6; color: #6B7280; }
+        
+        /* Monthly Winner Card */
+        .month-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            padding: 1rem;
+            text-align: center;
+        }
+
+        /* Mobile specific table wrapping for Leaderboard */
+        .leaderboard-table-wrapper {
+            overflow-x: auto;
+        }
+        
+        /* Ensure inputs take up full space */
+        .dashboard-input {
+            transition: all 0.2s;
+        }
+        
+        /* Checklist padding adjustment for mobile */
+        .accordion-header {
+            padding: 1rem;
+        }
+        .accordion-content.open {
+            padding: 1rem;
+        }
+        
+        @media (min-width: 768px) {
+            .accordion-header {
+                padding: 1rem 1.5rem;
+            }
+            .accordion-content.open {
+                padding: 1.5rem;
+            }
+        }
 
     </style>
 </head>
@@ -278,27 +393,27 @@
             
             <h1 class="text-3xl md:text-4xl font-extrabold mcd-text-red mb-6 text-center md:text-left">Shift Management Tool</h1>
             
-            <!-- Tab Navigation -->
-            <nav id="tab-header" class="bg-white rounded-xl shadow-lg mb-6 flex">
-                <button class="tab-btn flex-grow text-center flex items-center justify-center" data-tab="leaderboard">
-                    <span class="mr-2">🏆</span> Leaderboard
+            <!-- Tab Navigation (Horizontal Scrollable) -->
+            <nav id="tab-header" class="bg-white rounded-xl shadow-lg mb-6 flex overflow-x-auto whitespace-nowrap">
+                <button class="tab-btn" data-tab="leaderboard">
+                    <span class="mr-1">🏆</span> Leaderboard
                 </button>
-                <button class="tab-btn flex-grow text-center" data-tab="shift-plans">
-                    1. Shift Plans
+                <button class="tab-btn" data-tab="shift-plans">
+                    1. Plans
                 </button>
-                <button class="tab-btn flex-grow text-center" data-tab="shift-targets">
-                    2. Shift Targets
+                <button class="tab-btn" data-tab="shift-targets">
+                    2. Targets
                 </button>
-                <button class="tab-btn flex-grow text-center" data-tab="pre-shift">
+                <button class="tab-btn" data-tab="pre-shift">
                     3. Pre-Shift
                 </button>
-                <button class="tab-btn flex-grow text-center" data-tab="during-shift">
+                <button class="tab-btn" data-tab="during-shift">
                     4. During Shift
                 </button>
-                <button class="tab-btn flex-grow text-center" data-tab="travel-path">
+                <button class="tab-btn" data-tab="travel-path">
                     5. Travel Path
                 </button>
-                <button class="tab-btn flex-grow text-center" data-tab="post-shift">
+                <button class="tab-btn" data-tab="post-shift">
                     6. Post-Shift
                 </button>
             </nav>
@@ -307,51 +422,65 @@
             
             <!-- 0. Leaderboard Tab -->
             <div id="tab-leaderboard" class="tab-content hidden">
+                
+                <!-- User Status Card -->
+                <div id="user-status-card" class="bg-gray-100 border border-gray-300 rounded-xl shadow-sm p-3 mb-6 text-sm flex justify-between items-center">
+                    <p class="text-gray-700 font-semibold">Current User: <span id="display-user-id" class="font-normal text-gray-500 text-xs break-all"></span></p>
+                    <span id="auth-status-badge" class="px-3 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-800">Authenticating...</span>
+                </div>
+                
                 <!-- Current Shift Score Card -->
-                <div class="bg-yellow-50 border border-yellow-200 rounded-xl shadow-sm p-6 mb-6 flex flex-col md:flex-row justify-between items-center">
+                <div class="bg-yellow-50 border border-yellow-200 rounded-xl shadow-sm p-4 md:p-6 mb-6 flex flex-col md:flex-row justify-between items-center">
                     <div class="mb-4 md:mb-0">
                         <h3 class="text-xl font-bold text-gray-900" id="current-score-title">Your Current Shift Score</h3>
-                        <p class="text-sm text-gray-600">Score based on Targets Met and Checklist Completion.</p>
+                        <p class="text-sm text-gray-600">Score based on Targets Met and Checklist Completion. (Max 100 Points)</p>
                         
                         <!-- Updated Metrics List -->
-                        <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1 text-sm text-gray-600">
-                            <p>• Sales (Actual ≥ Target): <span class="font-bold text-green-600">+15 pts</span></p>
-                            <p>• OEPE (Actual ≤ Target): <span class="font-bold text-green-600">+15 pts</span></p>
-                            <p>• GC (Actual ≥ Target): <span class="font-bold text-green-600">+10 pts</span></p>
-                            <p>• AC (Actual ≥ Target): <span class="font-bold text-green-600">+10 pts</span></p>
-                            <p>• RW (Actual ≤ Target): <span class="font-bold text-green-600">+10 pts</span></p>
-                            <p>• R2P (Actual ≤ Target): <span class="font-bold text-green-600">+10 pts</span></p>
-                            <p>• CFS (Actual ≥ Target): <span class="font-bold text-green-600">+10 pts</span></p>
-                            <p>• Checklists (100%): <span class="font-bold text-green-600">+20 pts</span></p>
+                        <div class="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-gray-600">
+                            <p>• Sales (≥ Target): <span class="font-bold text-green-600">+15 pts</span></p>
+                            <p>• OEPE (≤ Target): <span class="font-bold text-green-600">+15 pts</span></p>
+                            <p>• GC (≥ Target): <span class="font-bold text-green-600">+10 pts</span></p>
+                            <p>• AC (≥ Target): <span class="font-bold text-green-600">+10 pts</span></p>
+                            <p>• RW (≤ Target): <span class="font-bold text-green-600">+10 pts</span></p>
+                            <p>• R2P (≤ Target): <span class="font-bold text-green-600">+15 pts</span></p>
+                            <p>• CFS (≥ Target): <span class="font-bold text-green-600">+10 pts</span></p>
+                            <p>• Checklists (100%): <span class="font-bold text-green-600">+15 pts</span></p>
                         </div>
                     </div>
-                    <div class="text-center">
+                    <div class="text-center mt-4 md:mt-0">
                         <span id="current-shift-score" class="text-5xl font-extrabold mcd-text-red">0</span>
                         <p class="text-xs text-gray-500 uppercase tracking-wider mt-1">Total Points</p>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                <!-- Monthly Leaderboard -->
+                <div class="bg-white rounded-xl shadow-lg p-4 md:p-6 mb-6">
                     <div class="flex justify-between items-end mb-6">
                         <div>
-                            <h2 class="text-2xl font-bold mcd-text-red">Manager Leaderboard</h2>
-                            <p class="text-sm text-gray-500">Ranking based on accumulated Average Score</p>
+                            <h2 class="text-xl md:text-2xl font-bold mcd-text-red">Manager Leaderboard</h2>
+                            <p class="text-xs md:text-sm text-gray-500">Ranking based on accumulated achievement for the current month</p>
                         </div>
                         <button id="refresh-leaderboard-btn" class="text-sm text-gray-500 hover:text-gray-800 underline">
                             Refresh Data
                         </button>
                     </div>
 
-                    <!-- Leaderboard Table -->
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
+                    <!-- Leaderboard Table Wrapper (Horizontal Scroll on mobile) -->
+                    <div class="leaderboard-table-wrapper">
+                        <table class="min-w-full text-left border-collapse">
                             <thead>
                                 <tr class="text-xs text-gray-500 uppercase border-b border-gray-100">
-                                    <th class="py-3 px-4 font-semibold">Rank</th>
-                                    <th class="py-3 px-4 font-semibold">Manager</th>
-                                    <th class="py-3 px-4 font-semibold text-center">Avg Score</th>
-                                    <th class="py-3 px-4 font-semibold text-center">Sales Hit Rate</th>
-                                    <th class="py-3 px-4 font-semibold text-center">OEPE Hit Rate</th>
+                                    <th class="py-3 px-4 font-semibold w-16 text-center">RANK</th>
+                                    <th class="py-3 px-4 font-semibold">MANAGER</th>
+                                    <th class="py-3 px-4 font-semibold text-center bg-yellow-50 text-gray-900 border-x border-yellow-100">TOTAL PTS</th>
+                                    <th class="py-3 px-2 font-semibold text-center text-xs text-gray-500">SALES (15)</th>
+                                    <th class="py-3 px-2 font-semibold text-center text-xs text-gray-500">GC (10)</th>
+                                    <th class="py-3 px-2 font-semibold text-center text-xs text-gray-500">RW (10)</th>
+                                    <th class="py-3 px-2 font-semibold text-center text-xs text-gray-500">CFS (10)</th>
+                                    <th class="py-3 px-2 font-semibold text-center text-xs text-gray-500">OEPE (15)</th>
+                                    <th class="py-3 px-2 font-semibold text-center text-xs text-gray-500">AC (10)</th>
+                                    <th class="py-3 px-2 font-semibold text-center text-xs text-gray-500">R2P (15)</th> 
+                                    <th class="py-3 px-2 font-semibold text-center text-xs text-gray-500">CHECKLIST (15)</th> 
                                 </tr>
                             </thead>
                             <tbody id="leaderboard-body" class="text-sm text-gray-700">
@@ -360,87 +489,109 @@
                         </table>
                     </div>
                 </div>
+                
+                <!-- Manager of the Year Tracker -->
+                <div class="bg-white rounded-xl shadow-lg p-4 md:p-6 mt-6">
+                    <h2 class="text-xl md:text-2xl font-bold mcd-text-red mb-4">Manager of the Year Tracker (<span id="current-year-display"></span>)</h2>
+                    <p class="text-xs md:text-sm text-gray-500 mb-6">Tracking the top-performing manager each month for annual recognition (Manager of the Month).</p>
+                    <div id="monthly-winners-container" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+                        <!-- Monthly Winner cards will be injected here by JS -->
+                    </div>
+                    <div id="manager-of-the-year-status" class="mt-6 text-center text-gray-500 text-sm">Loading monthly winners...</div>
+                </div>
+                
             </div>
             
             <!-- 1. Shift Plans Tab -->
             <div id="tab-shift-plans" class="tab-content hidden">
-                <div class="bg-white rounded-xl shadow-lg p-6">
-                    <h2 class="text-2xl font-bold mcd-text-red mb-6">Shift Plans & Details</h2>
+                <div class="bg-white rounded-xl shadow-lg p-4 md:p-6">
+                    <h2 class="text-xl md:text-2xl font-bold mcd-text-red mb-6">Shift Plans & Details</h2>
 
-                    <!-- Section: Shift Details (Input) -->
-                    <div class="mb-8">
-                        <h3 class="text-xl font-semibold text-gray-800 mb-4">Current Shift Details</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
-                                <input type="date" id="shift-date" data-save="shift-date" class="p-3 border border-gray-300 rounded-lg dashboard-input w-full">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Shift Leader</label>
-                                <input type="text" id="shift-leader" data-save="shift-leader" placeholder="Shift Leader Name" class="p-3 border border-gray-300 rounded-lg dashboard-input w-full">
-                            </div>
-                            <div class="md:col-span-2">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Shift Time</label>
-                                <select id="shift-time" data-save="shift-time" class="p-3 border border-gray-300 rounded-lg dashboard-input w-full text-gray-500">
-                                    <option value="" disabled selected>Select Shift</option>
-                                    <option value="opening">Opening</option>
-                                    <option value="mid">Mid-Shift</option>
-                                    <option value="closing">Closing</option>
-                                    <option value="graveyard">Graveyard Shift</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <hr class="my-8 border-gray-200">
-                    
-                    <!-- Section: Save Plan -->
-                    <div class="mb-8">
-                        <h3 class="text-xl font-semibold text-gray-800 mb-4">Save This Plan</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
-                            <div>
-                                <label for="plan-name-input" class="block text-sm font-medium text-gray-700 mb-1">Plan Name</label>
-                                <input type="text" id="plan-name-input" placeholder="e.g., Opening Shift - John" class="p-3 border border-gray-300 rounded-lg dashboard-input w-full">
-                            </div>
-                            <button id="save-plan-btn" class="mcd-red hover:bg-red-800 text-white font-semibold py-3 px-4 rounded-lg shadow-md w-full h-12">
-                                Save Current Plan
-                            </button>
-                        </div>
-                        <p class="text-xs text-gray-500 mt-2">This will save all data currently entered in the tool (Targets, Checklists, Notes). <br><span class="text-mcd-red font-bold">Note:</span> Saved plans are drafts and do NOT appear in the leaderboard until finalized via "Generate Handover Summary".</p>
-                    </div>
-                    
-                    <hr class="my-8 border-gray-200">
-
-                    <!-- Section: Load Plan -->
-                    <div>
-                        <h3 class="text-xl font-semibold text-gray-800 mb-4">Load Previous Plan</h3>
+                    <!-- Use a responsive grid to split the content area -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
                         
-                        <div class="flex flex-col space-y-4">
-                            <!-- Date Search -->
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
-                                <div>
-                                    <label for="plan-date-input" class="block text-sm font-medium text-gray-700 mb-1">Search by Date</label>
-                                    <input type="date" id="plan-date-input" class="p-3 border border-gray-300 rounded-lg dashboard-input w-full">
+                        <!-- LEFT COLUMN: Current Shift Details + Save Plan -->
+                        <div class="space-y-8 border-b lg:border-b-0 lg:border-r border-gray-200 pb-8 lg:pb-0 lg:pr-12">
+                            
+                            <!-- Section: Shift Details (Input) -->
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-800 mb-4">Current Shift Details</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                                        <input type="date" id="shift-date" data-save="shift-date" class="p-3 border border-gray-300 rounded-lg dashboard-input w-full">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Shift Leader</label>
+                                        <input type="text" id="shift-leader" data-save="shift-leader" placeholder="Shift Leader Name" class="p-3 border border-gray-300 rounded-lg dashboard-input w-full">
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Shift Time</label>
+                                        <select id="shift-time" data-save="shift-time" class="p-3 border border-gray-300 rounded-lg dashboard-input w-full text-gray-700">
+                                            <option value="" disabled selected class="text-gray-500">Select Shift</option>
+                                            <option value="opening">Opening</option>
+                                            <option value="mid">Mid-Shift</option>
+                                            <option value="closing">Closing</option>
+                                            <option value="graveyard">Graveyard Shift</option>
+                                        </select>
+                                    </div>
                                 </div>
-                                <button id="find-plans-btn" class="mcd-yellow hover:bg-yellow-500 text-gray-900 font-semibold py-3 px-4 rounded-lg shadow-md w-full h-12">
-                                    Find Plans
-                                </button>
+                            </div>
+        
+                            <hr class="my-6 md:my-8 border-gray-200">
+                            
+                            <!-- Section: Save Plan -->
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-800 mb-4">Save This Plan</h3>
+                                <div class="grid grid-cols-1 gap-4 items-end">
+                                    <div>
+                                        <label for="plan-name-input" class="block text-sm font-medium text-gray-700 mb-1">Plan Name</label>
+                                        <input type="text" id="plan-name-input" data-save="plan-name" placeholder="e.g., Opening Shift - John" class="p-3 border border-gray-300 rounded-lg dashboard-input w-full">
+                                    </div>
+                                    <button id="save-plan-btn" class="mcd-red hover:bg-red-800 text-white font-semibold py-3 px-4 rounded-lg shadow-md w-full h-12">
+                                        Save Current Plan
+                                    </button>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-2">This will save all data currently entered in the tool (Targets, Checklists, Notes).</p>
                             </div>
 
-                            <!-- Show All Option -->
-                            <div class="border-t border-gray-100 pt-4">
-                                <button id="find-all-plans-btn" class="text-sm text-gray-500 hover:text-gray-800 underline flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                                    </svg>
-                                    Show all recent plans instead
-                                </button>
-                            </div>
                         </div>
                         
-                        <!-- Results Area -->
-                        <div id="plan-results-container" class="mt-6">
-                            <p id="plan-results-status" class="text-gray-500">Select a date or click "Show all" to find plans.</p>
+                        <!-- RIGHT COLUMN: Load Plan -->
+                        <div class="lg:pl-8">
+
+                            <!-- Section: Load Plan -->
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-800 mb-4">Load Previous Plan</h3>
+                                
+                                <div class="flex flex-col space-y-4">
+                                    <!-- Date Search -->
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+                                        <div>
+                                            <label for="plan-date-input" class="block text-sm font-medium text-gray-700 mb-1">Search by Date</label>
+                                            <input type="date" id="plan-date-input" class="p-3 border border-gray-300 rounded-lg dashboard-input w-full">
+                                        </div>
+                                        <button id="find-plans-btn" class="mcd-yellow hover:bg-yellow-500 text-gray-900 font-semibold py-3 px-4 rounded-lg shadow-md w-full h-12">
+                                            Find Plans
+                                        </button>
+                                    </div>
+
+                                    <!-- Show All Option -->
+                                    <div class="border-t border-gray-100 pt-4">
+                                        <button id="find-all-plans-btn" class="text-sm text-gray-500 hover:text-gray-800 underline flex items-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                            </svg>
+                                            Show all recent plans instead
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Results Area -->
+                                <div id="plan-results-container" class="mt-6">
+                                    <p id="plan-results-status" class="text-gray-500">Select a date or click "Show all" to find plans.</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -448,14 +599,15 @@
 
             <!-- 2. Shift Targets Tab -->
             <div id="tab-shift-targets" class="tab-content hidden">
-                <div class="bg-white rounded-xl shadow-lg p-6">
-                    <h2 class="text-2xl font-bold mcd-text-red mb-6">Shift Targets & Performance</h2>
+                <div class="bg-white rounded-xl shadow-lg p-4 md:p-6">
+                    <h2 class="text-xl md:text-2xl font-bold mcd-text-red mb-6">Shift Targets & Performance</h2>
                     
                     <!-- Responsive Grid for Targets -->
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-8">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-x-6 md:gap-x-12 gap-y-8">
                         <!-- Sales/Profit Column -->
-                        <div>
-                            <h3 class="text-xl font-semibold text-gray-800 mb-3">Sales / Profit</h3>
+                        <div class="space-y-3">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-3 border-b pb-2">Sales / Profit</h3>
+                            <!-- Targets Headers (Desktop only) -->
                             <div class="target-header-grid gap-2 items-center mb-2 font-medium text-gray-600 text-sm">
                                 <span>Metric</span>
                                 <span>Target</span>
@@ -463,41 +615,41 @@
                                 <span>+/-</span>
                             </div>
                             <!-- Target Rows -->
-                            <div class="target-row grid gap-2 items-center mb-3">
+                            <div class="target-row grid">
                                 <label for="target-sales" class="target-row-label">Sales</label>
-                                <input type="number" id="target-sales" data-save="target-sales" class="target-input dashboard-input p-2 border border-gray-300 rounded-lg w-full" placeholder="Target">
-                                <input type="number" id="actual-sales" data-save="actual-sales" class="actual-input dashboard-input p-2 border border-gray-300 rounded-lg w-full" placeholder="Actual">
+                                <input type="number" id="target-sales" data-save="target-sales" class="target-input dashboard-input p-2 border border-gray-300 rounded-lg w-full" placeholder="Target ($)">
+                                <input type="number" id="actual-sales" data-save="actual-sales" class="actual-input dashboard-input p-2 border border-gray-300 rounded-lg w-full" placeholder="Actual ($)">
                                 <span id="diff-sales" class="diff-output target-row-diff">0</span>
                             </div>
-                            <div class="target-row grid gap-2 items-center mb-3">
-                                <label for="target-gc" class="target-row-label">GC</label>
-                                <input type="number" id="target-gc" data-save="target-gc" class="target-input dashboard-input p-2 border border-gray-300 rounded-lg w-full" placeholder="Target">
-                                <input type="number" id="actual-gc" data-save="actual-gc" class="actual-input dashboard-input p-2 border border-gray-300 rounded-lg w-full" placeholder="Actual">
+                            <div class="target-row grid">
+                                <label for="target-gc" class="target-row-label">GC (Guest Count)</label>
+                                <input type="number" id="target-gc" data-save="target-gc" class="target-input dashboard-input p-2 border border-gray-300 rounded-lg w-full" placeholder="Target (Count)">
+                                <input type="number" id="actual-gc" data-save="actual-ac" class="actual-input dashboard-input p-2 border border-gray-300 rounded-lg w-full" placeholder="Actual (Count)">
                                 <span id="diff-gc" class="diff-output target-row-diff">0</span>
                             </div>
-                            <div class="target-row grid gap-2 items-center mb-3">
-                                <label for="target-ac" class="target-row-label">AC</label>
-                                <input type="number" id="target-ac" data-save="target-ac" class="target-input dashboard-input p-2 border border-gray-300 rounded-lg w-full" placeholder="Target">
-                                <input type="number" id="actual-ac" data-save="actual-ac" class="actual-input dashboard-input p-2 border border-gray-300 rounded-lg w-full" placeholder="Actual">
+                            <div class="target-row grid">
+                                <label for="target-ac" class="target-row-label">AC (Avg Check)</label>
+                                <input type="number" id="target-ac" data-save="target-ac" class="target-input dashboard-input p-2 border border-gray-300 rounded-lg w-full" placeholder="Target ($)">
+                                <input type="number" id="actual-ac" data-save="actual-ac" class="actual-input dashboard-input p-2 border border-gray-300 rounded-lg w-full" placeholder="Actual ($)">
                                 <span id="diff-ac" class="diff-output target-row-diff">0</span>
                             </div>
-                            <div class="target-row grid gap-2 items-center mb-3">
+                            <div class="target-row grid">
                                 <label for="target-crew-labor" class="target-row-label">Crew Labor</label>
-                                <input type="number" id="target-crew-labor" data-save="target-crew-labor" class="target-input dashboard-input p-2 border border-gray-300 rounded-lg w-full" placeholder="Target">
-                                <input type="number" id="actual-crew-labor" data-save="actual-crew-labor" class="actual-input dashboard-input p-2 border border-gray-300 rounded-lg w-full" placeholder="Actual">
+                                <input type="number" id="target-crew-labor" data-save="target-crew-labor" class="target-input dashboard-input p-2 border border-gray-300 rounded-lg w-full" placeholder="Target (%)">
+                                <input type="number" id="actual-crew-labor" data-save="actual-crew-labor" class="actual-input dashboard-input p-2 border border-gray-300 rounded-lg w-full" placeholder="Actual (%)">
                                 <span id="diff-crew-labor" class="diff-output target-row-diff">0</span>
                             </div>
-                            <div class="target-row grid gap-2 items-center mb-3">
-                                <label for="target-rw" class="target-row-label">RW</label>
-                                <input type="number" id="target-rw" data-save="target-rw" class="target-input dashboard-input p-2 border border-gray-300 rounded-lg w-full" placeholder="Target">
-                                <input type="number" id="actual-rw" data-save="actual-rw" class="actual-input dashboard-input p-2 border border-gray-300 rounded-lg w-full" placeholder="Actual">
+                            <div class="target-row grid">
+                                <label for="target-rw" class="target-row-label">RW (Raw Waste)</label>
+                                <input type="number" id="target-rw" data-save="target-rw" class="target-input dashboard-input p-2 border border-gray-300 rounded-lg w-full" placeholder="Target (Units)">
+                                <input type="number" id="actual-rw" data-save="actual-rw" class="actual-input dashboard-input p-2 border border-gray-300 rounded-lg w-full" placeholder="Actual (Units)">
                                 <span id="diff-rw" class="diff-output target-row-diff">0</span>
                             </div>
                         </div>
                         
                         <!-- Customer Experience Column -->
-                        <div>
-                            <h3 class="text-xl font-semibold text-gray-800 mb-3">Customer Experience</h3>
+                        <div class="space-y-3">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-3 border-b pb-2">Customer Experience (Seconds)</h3>
                             <div class="target-header-grid gap-2 items-center mb-2 font-medium text-gray-600 text-sm">
                                 <span>Metric</span>
                                 <span>Target</span>
@@ -505,53 +657,49 @@
                                 <span>+/-</span>
                             </div>
                             <!-- Target Rows -->
-                            <div class="target-row grid gap-2 items-center mb-3">
+                            <div class="target-row grid">
                                 <label for="target-oepe" class="target-row-label">OEPE</label>
-                                <!-- Preset: 120 -->
-                                <input type="number" id="target-oepe" data-save="target-oepe" value="120" class="target-input dashboard-input p-2 border border-gray-300 rounded-lg w-full" placeholder="Target">
-                                <input type="number" id="actual-oepe" data-save="actual-oepe" class="actual-input dashboard-input p-2 border border-gray-300 rounded-lg w-full" placeholder="Actual">
+                                <input type="number" id="target-oepe" data-save="target-oepe" value="120" class="target-input dashboard-input p-2 border border-gray-300 rounded-lg w-full" placeholder="Target (Sec)">
+                                <input type="number" id="actual-oepe" data-save="actual-oepe" class="actual-input dashboard-input p-2 border border-gray-300 rounded-lg w-full" placeholder="Actual (Sec)">
                                 <span id="diff-oepe" class="diff-output target-row-diff">0</span>
                             </div>
-                            <div class="target-row grid gap-2 items-center mb-3">
+                            <div class="target-row grid">
                                 <label for="target-opt" class="target-row-label">Order Prep</label>
-                                <!-- Preset: 50 -->
-                                <input type="number" id="target-opt" data-save="target-opt" value="50" class="target-input dashboard-input p-2 border border-gray-300 rounded-lg w-full" placeholder="Target">
-                                <input type="number" id="actual-opt" data-save="actual-opt" class="actual-input dashboard-input p-2 border border-gray-300 rounded-lg w-full" placeholder="Actual">
+                                <input type="number" id="target-opt" data-save="target-opt" value="50" class="target-input dashboard-input p-2 border border-gray-300 rounded-lg w-full" placeholder="Target (Sec)">
+                                <input type="number" id="actual-opt" data-save="actual-opt" class="actual-input dashboard-input p-2 border border-gray-300 rounded-lg w-full" placeholder="Actual (Sec)">
                                 <span id="diff-opt" class="diff-output target-row-diff">0</span>
                             </div>
-                            <div class="target-row grid gap-2 items-center mb-3">
-                                <label for="target-r2p" class="target-row-label">R2P</label>
-                                <!-- Preset: 90 -->
-                                <input type="number" id="target-r2p" data-save="target-r2p" value="90" class="target-input dashboard-input p-2 border border-gray-300 rounded-lg w-full" placeholder="Target">
-                                <input type="number" id="actual-r2p" data-save="actual-r2p" class="actual-input dashboard-input p-2 border border-gray-300 rounded-lg w-full" placeholder="Actual">
+                            <div class="target-row grid">
+                                <label for="target-r2p" class="target-row-label">R2P (Receipt to Present)</label>
+                                <input type="number" id="target-r2p" data-save="target-r2p" value="90" class="target-input dashboard-input p-2 border border-gray-300 rounded-lg w-full" placeholder="Target (Sec)">
+                                <input type="number" id="actual-r2p" data-save="actual-r2p" class="actual-input dashboard-input p-2 border border-gray-300 rounded-lg w-full" placeholder="Actual (Sec)">
                                 <span id="diff-r2p" class="diff-output target-row-diff">0</span>
                             </div>
-                            <div class="target-row grid gap-2 items-center mb-3">
-                                <label for="target-cfs" class="target-row-label">CFS</label>
-                                <!-- Preset: 10 -->
-                                <input type="number" id="target-cfs" data-save="target-cfs" value="10" class="target-input dashboard-input p-2 border border-gray-300 rounded-lg w-full" placeholder="Target">
-                                <input type="number" id="actual-cfs" data-save="actual-cfs" class="actual-input dashboard-input p-2 border border-gray-300 rounded-lg w-full" placeholder="Actual">
+                            <div class="target-row grid">
+                                <label for="target-cfs" class="target-row-label">CFS (Feedback Count)</label>
+                                <input type="number" id="target-cfs" data-save="target-cfs" value="10" class="target-input dashboard-input p-2 border border-gray-300 rounded-lg w-full" placeholder="Target (Count)">
+                                <input type="number" id="actual-cfs" data-save="actual-cfs" class="actual-input dashboard-input p-2 border border-gray-300 rounded-lg w-full" placeholder="Actual (Count)">
                                 <span id="diff-cfs" class="diff-output target-row-diff">0</span>
                             </div>
                         </div>
                     </div>
                     
                     <!-- People & Other Tasks -->
-                    <hr class="my-8 border-gray-200">
+                    <hr class="my-6 md:my-8 border-gray-200">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
-                            <h3 class="text-xl font-semibold text-gray-800 mb-3">People</h3>
-                            <input type="text" id="people-names" data-save="people-names" placeholder="Names..." class="dashboard-input p-3 border border-gray-300 rounded-lg w-full mb-2">
-                            <input type="text" id="people-actual" data-save="people-actual" placeholder="Actual..." class="dashboard-input p-3 border border-gray-300 rounded-lg w-full">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-3">People/Breaks</h3>
+                            <input type="text" id="people-names" data-save="people-names" placeholder="Crew names, training notes..." class="dashboard-input p-3 border border-gray-300 rounded-lg w-full mb-2">
+                            <input type="text" id="people-actual" data-save="people-actual" placeholder="Break coverage, deployment issues..." class="dashboard-input p-3 border border-gray-300 rounded-lg w-full">
                         </div>
                         <div>
-                            <h3 class="text-xl font-semibold text-gray-800 mb-3">PM/BM Tasks</h3>
-                            <input type="text" id="tasks-fusoc" data-save="tasks-fusoc" placeholder="FUSOC..." class="dashboard-input p-3 border border-gray-300 rounded-lg w-full mb-2">
-                            <input type="text" id="tasks-prwr" data-save="tasks-prwr" placeholder="PR/WR..." class="dashboard-input p-3 border border-gray-300 rounded-lg w-full">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-3">Manager Tasks</h3>
+                            <input type="text" id="tasks-fusoc" data-save="tasks-fusoc" placeholder="FUSOC, Safe-D checks..." class="dashboard-input p-3 border border-gray-300 rounded-lg w-full mb-2">
+                            <input type="text" id="tasks-prwr" data-save="tasks-prwr" placeholder="PR/WR, E-learning notes..." class="dashboard-input p-3 border border-gray-300 rounded-lg w-full">
                         </div>
                         <div>
-                            <h3 class="text-xl font-semibold text-gray-800 mb-3">Others</h3>
-                            <textarea id="tasks-others" data-save="tasks-others" placeholder="Notes..." class="dashboard-input p-3 border border-gray-300 rounded-lg w-full h-24"></textarea>
+                            <h3 class="text-lg font-semibold text-gray-800 mb-3">Others</h3>
+                            <textarea id="tasks-others" data-save="tasks-others" placeholder="General shift notes for next manager..." class="dashboard-input p-3 border border-gray-300 rounded-lg w-full h-24"></textarea>
                         </div>
                     </div>
                 </div>
@@ -560,7 +708,7 @@
             <!-- 3. Pre-Shift Tab -->
             <div id="tab-pre-shift" class="tab-content hidden">
                 <!-- Accordion Controls -->
-                <div class="p-4 bg-gray-50 border-b border-gray-200 flex justify-end space-x-3">
+                <div class="p-4 bg-gray-50 border-b border-gray-200 flex justify-end space-x-3 rounded-t-xl">
                     <button class="expand-all-btn text-sm font-medium mcd-text-red hover:underline">Expand All</button>
                     <button class="collapse-all-btn text-sm font-medium mcd-text-red hover:underline">Collapse All</button>
                 </div>
@@ -571,28 +719,32 @@
 
             <!-- 4. During Shift Tab -->
             <div id="tab-during-shift" class="tab-content hidden">
-                <!-- Accordion Controls -->
-                <div class="p-4 bg-gray-50 border-b border-gray-200 flex justify-end space-x-3">
+                 <!-- Accordion Controls -->
+                <div class="p-4 bg-gray-50 border-b border-gray-200 flex justify-end space-x-3 rounded-t-xl">
                     <button class="expand-all-btn text-sm font-medium mcd-text-red hover:underline">Expand All</button>
                     <button class="collapse-all-btn text-sm font-medium mcd-text-red hover:underline">Collapse All</button>
                 </div>
-                <div id="during-shift-accordion-container">
-                    <!-- During Shift accordions will be injected here by JavaScript -->
+                <div id="during-shift-accordion-container" class="mb-6">
+                    <!-- Note: No built-in checklist, this area is reserved for custom sections if needed -->
+                    <div class="p-6 bg-white rounded-xl shadow-lg border border-gray-200 text-center text-gray-500">
+                        <p class="text-lg font-semibold">Shift In Progress: Use Travel Path Tab</p>
+                        <p class="text-sm">The primary checklist focus during the shift is in the "5. Travel Path" tab.</p>
+                    </div>
                 </div>
                 
                 <!-- Travel Path Focus List -->
-                <div class="p-6 mt-6 border-t border-gray-200 bg-gray-50 rounded-lg">
-                    <h2 class="text-2xl font-bold mcd-text-red mb-4">Travel Path Focus List</h2>
-                    <p class="text-sm text-gray-600 mb-4">Click the button to refresh the list of outstanding items from your Pre-Shift checklist. This will show all unchecked tasks.</p>
+                <div class="p-4 md:p-6 mt-6 border-t border-gray-200 bg-gray-50 rounded-xl shadow-lg">
+                    <h2 class="text-xl font-bold mcd-text-red mb-4">Travel Path Focus List (Pre-Shift Follow-up)</h2>
+                    <p class="text-sm text-gray-600 mb-4">Click the button to generate a list of all **unchecked** tasks from your **Pre-Shift** checklist. This helps prioritize immediate follow-up.</p>
                     <button id="refresh-travel-path-btn" class="mcd-yellow hover:bg-yellow-500 text-gray-900 font-semibold py-2 px-4 rounded-lg shadow-md mb-6">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block -ml-1 mr-2" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 110 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.004 10.043a1 1 0 01-.666 1.885 7.002 7.002 0 01-2.566-11.601 1 1 0 11.666 1.885 5.002 5.002 0 007 7H5a1 1 0 110-2h5.001a1 1 0 01.996 1.113z" clip-rule="evenodd" />
                         </svg>
-                        Refresh Focus List
+                        Generate Focus List
                     </button>
                     
                     <div id="travel-path-report-container">
-                        <p class="text-gray-500">Click the "Refresh" button to generate your focus list.</p>
+                        <p class="text-gray-500">Click the "Generate Focus List" button to prioritize your follow-up items.</p>
                     </div>
                 </div>
             </div>
@@ -600,10 +752,10 @@
             <!-- 5. Travel Path Tab -->
             <div id="tab-travel-path" class="tab-content hidden">
                 <!-- Travel Path Alarm -->
-                <div class="p-6 border-b border-gray-200 bg-gray-50 rounded-lg mb-6">
-                    <h2 class="text-2xl font-bold mcd-text-red mb-4">Travel Path Alarm</h2>
-                    <div class="flex items-center justify-between">
-                        <label for="travel-path-alarm-toggle" class="text-gray-700 font-medium text-lg">Enable 30-min Travel Path Reminder</label>
+                <div class="p-4 md:p-6 border-b border-gray-200 bg-white rounded-xl shadow-lg mb-6">
+                    <h2 class="text-xl font-bold mcd-text-red mb-4">Travel Path Alarm (30-Minute Check)</h2>
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between">
+                        <label for="travel-path-alarm-toggle" class="text-gray-700 font-medium text-lg mb-2 sm:mb-0">Enable 30-min Travel Path Notification</label>
                         <label class="switch">
                             <input type="checkbox" id="travel-path-alarm-toggle" data-save="travel-path-alarm-toggle">
                             <span class="slider"></span>
@@ -612,19 +764,19 @@
                 </div>
 
                 <!-- Sub-Tab Navigation -->
-                <nav class="flex border-b border-gray-200">
+                <nav class="flex border-b border-gray-200 bg-white rounded-t-xl overflow-hidden shadow-sm">
                     <button class="sub-tab-btn flex-grow p-4 text-center font-medium" data-sub-tab="checklist">
                         Full Checklist
                     </button>
                     <button class="sub-tab-btn flex-grow p-4 text-center font-medium" data-sub-tab="todo">
-                        To Do List
+                        Outstanding To Do List
                     </button>
                 </nav>
 
                 <!-- Sub-Tab Content: Checklist -->
                 <div id="sub-tab-checklist" class="sub-tab-content">
                     <!-- Accordion Controls -->
-                    <div class="p-4 bg-gray-50 border-b border-gray-200 flex justify-end space-x-3">
+                    <div class="p-4 bg-gray-50 border-b border-gray-200 flex justify-end space-x-3 rounded-t-xl">
                         <button class="expand-all-btn text-sm font-medium mcd-text-red hover:underline">Expand All</button>
                         <button class="collapse-all-btn text-sm font-medium mcd-text-red hover:underline">Collapse All</button>
                     </div>
@@ -634,9 +786,9 @@
                 </div>
 
                 <!-- Sub-Tab Content: To Do List -->
-                <div id="sub-tab-todo" class="sub-tab-content hidden p-6">
-                    <h2 class="text-2xl font-bold mcd-text-red mb-4">Travel Path To Do List</h2>
-                    <p class="text-sm text-gray-600 mb-4">Click the button to refresh the list of outstanding items from your Travel Path checklist. This will show all unchecked tasks.</p>
+                <div id="sub-tab-todo" class="sub-tab-content hidden p-4 md:p-6 bg-white rounded-b-xl shadow-lg">
+                    <h2 class="text-xl font-bold mcd-text-red mb-4">Outstanding Travel Path Items</h2>
+                    <p class="text-sm text-gray-600 mb-4">Click the button to refresh the list of **unchecked** items from your Travel Path checklist.</p>
                     <button id="refresh-travel-path-todo-btn" class="mcd-yellow hover:bg-yellow-500 text-gray-900 font-semibold py-2 px-4 rounded-lg shadow-md mb-6">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block -ml-1 mr-2" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 110 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.004 10.043a1 1 0 01-.666 1.885 7.002 7.002 0 01-2.566-11.601 1 1 0 11.666 1.885 5.002 5.002 0 007 7H5a1 1 0 110-2h5.001a1 1 0 01.996 1.113z" clip-rule="evenodd" />
@@ -652,22 +804,22 @@
 
             <!-- 6. Post-Shift Tab -->
             <div id="tab-post-shift" class="tab-content hidden">
-                <!-- Accordion Controls -->
-                <div class="p-4 bg-gray-50 border-b border-gray-200 flex justify-end space-x-3">
-                    <button class="expand-all-btn text-sm font-medium mcd-text-red hover:underline">Expand All</button>
-                    <button class="collapse-all-btn text-sm font-medium mcd-text-red hover:underline">Collapse All</button>
-                </div>
                 <div id="post-shift-accordion-container">
                     <!-- Post-Shift accordions will be injected here by JavaScript -->
                 </div>
 
                 <!-- AI Handover -->
-                <div class="p-6 mt-6 border-t border-gray-200 bg-gray-50 rounded-lg">
-                    <h2 class="text-2xl font-bold mcd-text-red mb-4">AI Handover Summary</h2>
+                <div class="p-4 md:p-6 mt-6 border-t border-gray-200 bg-white rounded-xl shadow-lg">
+                    <h2 class="text-xl md:text-2xl font-bold mcd-text-red mb-4">AI Handover Summary</h2>
                     <p class="text-sm text-gray-600 mb-4">
-                        Click the button to generate a complete handover summary. This will also automatically save your shift data and update your leaderboard ranking.
+                        This process will: 
+                        <ol class="list-disc ml-5 text-gray-600 space-y-1 mt-2">
+                            <li>Save your current shift data and **lock it as completed**.</li>
+                            <li>Update your score on the **Leaderboard** (🏆).</li>
+                            <li>Generate a detailed, professional handover summary using AI.</li>
+                        </ol>
                     </p>
-                    <button id="generate-summary-btn" class="mcd-red hover:bg-red-800 text-white font-semibold py-3 px-6 rounded-lg shadow-md">
+                    <button id="generate-summary-btn" class="mcd-red hover:bg-red-800 text-white font-semibold py-3 px-6 rounded-lg shadow-xl">
                         Generate Handover Summary
                     </button>
                 </div>
@@ -690,7 +842,7 @@
         </div>
     </div>
     
-    <!-- NEW: Finalization Modal -->
+    <!-- Finalization Modal (Confirm Details before AI) -->
     <div id="finalize-modal-bg" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50 opacity-0">
         <div id="finalize-modal" class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md transform scale-95 opacity-0">
             <div class="flex justify-between items-start mb-4">
@@ -701,7 +853,7 @@
                     </svg>
                 </button>
             </div>
-            <p class="text-sm text-gray-600 mb-4">Please confirm your details to generate the handover summary and update the leaderboard.</p>
+            <p class="text-sm text-gray-600 mb-4">Please confirm your name and shift date. This information is used for the Leaderboard and Summary.</p>
             
             <div class="space-y-4 mb-6">
                 <div>
@@ -720,8 +872,8 @@
         </div>
     </div>
 
-    <!-- Alert Box -->
-    <div id="alert-box" class="fixed bottom-0 right-0 m-8 bg-white rounded-lg shadow-xl p-6 w-full max-w-sm border-l-4 border-yellow-400 z-50 transform translate-x-full opacity-0">
+    <!-- Alert Box (for Reminders) -->
+    <div id="alert-box" class="fixed bottom-0 right-0 m-4 sm:m-8 bg-white rounded-lg shadow-xl p-4 sm:p-6 w-full max-w-sm border-l-4 border-yellow-400 z-50 transform translate-x-full opacity-0">
         <div class="flex items-start">
             <div class="flex-shrink-0 pt-0.5">
                 <svg class="h-8 w-8 text-yellow-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -753,7 +905,7 @@
         <div id="ai-result-modal" class="bg-white rounded-lg shadow-xl p-0 w-full max-w-lg transform scale-95 opacity-0 flex flex-col" style="max-height: 90vh;">
             <!-- Modal Header -->
             <div class="flex justify-between items-center p-6 border-b border-gray-200">
-                <h3 class="text-2xl font-bold mcd-text-red">AI Handover Summary</h3>
+                <h3 class="text-xl md:text-2xl font-bold mcd-text-red">AI Handover Summary</h3>
                 <button id="close-ai-result-btn" class="text-gray-400 hover:text-gray-600">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -775,7 +927,6 @@
     <script type="module">
         // --- Firebase Imports ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
         import { 
             getAuth, 
             signInAnonymously, 
@@ -789,67 +940,683 @@
             addDoc, 
             setDoc, 
             updateDoc, 
-            deleteDoc, 
             onSnapshot, 
             collection, 
             query, 
             where, 
             limit,
-            orderBy,
             getDocs,
             serverTimestamp 
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- Firebase Config (DIRECT CONNECTION) ---
-        // Forced to use your specific project config always
+        // === START: FIREBASE CONFIGURATION (Secure Project Connection) ===
         const firebaseConfig = {
-          apiKey: "AIzaSyBlbxhzUp_TZd8oTrLxrY-E6gq-_XdiMCo",
-          authDomain: "mcdonalds-san-carlos.firebaseapp.com",
-          projectId: "mcdonalds-san-carlos",
-          storageBucket: "mcdonalds-san-carlos.firebasestorage.app",
-          messagingSenderId: "1052052612983",
-          appId: "1:1052052612983:web:0e107aa9b6aadad3666372",
-          measurementId: "G-QTSC1B9PD5"
+            apiKey: "AIzaSyBlbxhzUp_TZd8oTrLxrY-E6gq-_XdiMCo",
+            authDomain: "mcdonalds-san-carlos.firebaseapp.com",
+            projectId: "mcdonalds-san-carlos",
+            storageBucket: "mcdonalds-san-carlos.firebasestorage.app",
+            messagingSenderId: "1052052612983",
+            appId: "1:1052052612983:web:0e107aa9b6aadad3666372",
+            measurementId: "G-QTSC1B9PD5"
         };
         
-        // --- GEMINI AI API KEY ---
-        const apiKey = "AIzaSyAgT8Dvm1JS7FjWozoPBno2RgHWUx9LKI8";
+        // Final, successful, secure Cloud Function endpoint URL
+        // Using the FULL, direct HTTPS URL is the final resort to bypass proxy conflicts.
+        const CLOUD_FUNCTION_ENDPOINT = "https://us-central1-mcdonalds-san-carlos.cloudfunctions.net/generateHandoverSummary"; 
         
         // --- Global App State ---
         let app, db, auth;
         let userId = 'anonymous';
         let isAuthReady = false;
-        let currentDocId = null; // Track the current Firestore doc ID
-        
-        // --- Data Persistence Keys ---
-        const localSettingsKey = 'shiftAppLocalSettings';
-
-        // --- Shift Plan Elements ---
-        const savePlanBtn = document.getElementById('save-plan-btn');
-        const planNameInput = document.getElementById('plan-name-input');
-        
-        // --- INIT FLAGS ---
+        let currentDocId = null; 
         let isListenersInitialized = false;
+        let isPopulatingForm = false; 
+
+        // --- Firestore Collection Helpers (Using root collections for simplicity) ---
+        const getPlansCollection = () => collection(db, 'shift_plans');
+        const getMonthlyWinnersCollection = () => collection(db, 'monthly_winners');
+
+
+        // --- Helper function (Must be defined first) ---
+         // Helper to determine points achieved for a metric (Max 100 points total)
+        const calcMetricPoints = (key, data) => {
+             const val = (k) => parseFloat(data[k]) || 0;
+             const target = val(`target-${key}`);
+             const actual = val(`actual-${key}`);
+             
+             const weights = { sales: 15, gc: 10, ac: 10, rw: 10, oepe: 15, r2p: 15, cfs: 10, opt: 0 }; 
+             const maxPoints = weights[key] || 0;
+             
+             if (maxPoints === 0 || (target === 0 && actual === 0)) return 0;
+
+             if (['oepe', 'r2p', 'rw', 'crew-labor', 'opt'].includes(key)) {
+                 if (actual <= target) return maxPoints;
+                 const ratio = Math.max(0, 1 - ((actual - target) / target));
+                 return parseFloat((ratio * maxPoints).toFixed(2));
+             } 
+             else {
+                 if (actual >= target) return maxPoints;
+                 const ratio = actual / target;
+                 return parseFloat(Math.min(ratio * maxPoints, maxPoints).toFixed(2));
+             }
+        };
+
+        // Core function to calculate all shift scores
+        function calculateShiftPercentages(data) {
+            const keys = ['sales', 'gc', 'ac', 'rw', 'oepe', 'r2p', 'cfs', 'opt', 'crew-labor']; 
+            let result = {};
+            let sumOverall = 0;
+            
+            keys.forEach(key => {
+                const points = calcMetricPoints(key, data);
+                result[key] = points;
+                if (['sales', 'gc', 'ac', 'rw', 'oepe', 'r2p', 'cfs'].includes(key)) {
+                    sumOverall += points;
+                }
+            });
+            
+            // Checklist Calculation (Max 15 points)
+            const CHECKLIST_MAX_POINTS = 15; 
+            let checked = 0;
+            let totalCheckboxes = 0;
+            const allCheckboxesKeys = Object.keys(data).filter(key => key.startsWith('check-'));
+            
+            allCheckboxesKeys.forEach(key => {
+                totalCheckboxes++;
+                if (data[key] === true) checked++;
+            });
+
+            const checklistRatio = totalCheckboxes === 0 ? 0 : (checked / totalCheckboxes);
+            const checklist = parseFloat((checklistRatio * CHECKLIST_MAX_POINTS).toFixed(2)); 
+            result.checklist = checklist;
+            sumOverall += checklist;
+
+            result.overall = parseFloat(sumOverall.toFixed(2));
+            return result;
+        }
+
+        function getPreviousMonthKey() {
+            const now = new Date();
+            const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            const year = prevMonth.getFullYear();
+            const month = String(prevMonth.getMonth() + 1).padStart(2, '0');
+            const monthName = prevMonth.toLocaleString('default', { month: 'long' });
+            return { year, month: month, key: `${year}-${month}`, name: monthName };
+        }
+        
+        // --- Score Update Helper (Needs to be globally accessible) ---
+        function updateCurrentShiftScore() {
+            let score = 0;
+
+            const shiftData = scrapeDataFromForm();
+            const results = calculateShiftPercentages(shiftData);
+            score = Math.round(results.overall);
+
+            const scoreDisplay = document.getElementById('current-shift-score');
+            if (scoreDisplay) {
+                scoreDisplay.textContent = score;
+                if (score >= 90) scoreDisplay.className = "text-5xl font-extrabold mcd-green";
+                else if (score >= 70) scoreDisplay.className = "text-5xl font-extrabold mcd-text-yellow";
+                else scoreDisplay.className = "text-5xl font-extrabold mcd-text-red";
+            }
+
+            const uniqueSections = new Set();
+            document.querySelectorAll('.task-checkbox').forEach(cb => {
+                if(cb.dataset.section) uniqueSections.add(cb.dataset.section);
+            });
+
+            uniqueSections.forEach(slug => {
+                const sectionCheckboxes = document.querySelectorAll(`.task-checkbox[data-section="${slug}"]`); 
+                const total = sectionCheckboxes.length;
+                let checked = 0;
+                sectionCheckboxes.forEach(cb => { if(cb.checked) checked++; });
+                
+                const percentage = total === 0 ? 0 : (checked / total) * 100;
+                
+                const progressBar = document.getElementById(`progress-${slug}`);
+                const countSpan = document.getElementById(`count-${slug}`);
+                const badge = document.getElementById(`badge-${slug}`);
+                
+                if(progressBar) {
+                    progressBar.style.width = `${percentage}%`;
+                    if(percentage === 100) {
+                        progressBar.classList.remove('bg-mcd-yellow');
+                        progressBar.classList.add('bg-green-500');
+                    } else {
+                        progressBar.classList.add('bg-mcd-yellow');
+                        progressBar.classList.remove('bg-green-500');
+                    }
+                }
+                
+                if(countSpan) {
+                    countSpan.textContent = `${checked}/${total}`;
+                    countSpan.className = percentage === 100 ? "text-xs text-green-600 font-bold mr-3" : "text-xs text-gray-500 font-semibold mr-3";
+                }
+                
+                if(badge) {
+                    if(percentage === 100) badge.classList.remove('hidden');
+                    else badge.classList.add('hidden');
+                }
+            });
+        }
+        
+        // --- FIRESTORE UTILITIES ---
+        function clearShiftForm() {
+            document.querySelectorAll('[data-save]').forEach(input => {
+                if (input.type === 'checkbox' || input.type === 'radio') {
+                    input.checked = false;
+                } else {
+                    input.value = '';
+                }
+            });
+            document.querySelectorAll('.task-checkbox').forEach(box => {
+                box.checked = false;
+            });
+            document.querySelectorAll('.task-notes').forEach(note => {
+                note.value = '';
+            });
+            document.querySelectorAll('.diff-output').forEach(diff => {
+                diff.textContent = '0';
+                diff.classList.remove('text-red-600', 'text-green-600');
+            });
+            updateCurrentShiftScore();
+            currentDocId = null; 
+        }
+
+        function scrapeDataFromForm() {
+            const shiftData = {};
+            document.querySelectorAll('[data-save]').forEach(input => {
+                const key = input.dataset.save;
+                if (input.type === 'checkbox') {
+                    shiftData[key] = input.checked;
+                } else {
+                    input.value = (input.value !== null && input.value !== undefined) ? input.value : '';
+                    shiftData[key] = input.value;
+                }
+            });
+            
+            // Scrape checklist state and notes explicitly
+             document.querySelectorAll('.task-checkbox').forEach(box => {
+                const key = `check-${box.dataset.taskId}`;
+                shiftData[key] = box.checked;
+            });
+            
+            document.querySelectorAll('.task-notes').forEach(note => {
+                const key = `notes-${note.dataset.taskId}`;
+                if (key && note.value) { 
+                    shiftData[key] = note.value;
+                }
+            });
+
+            return shiftData;
+        }
+
+        function populateFormWithData(data) {
+            if (!data) return;
+            
+            isPopulatingForm = true; 
+            clearShiftForm(); 
+
+            document.querySelectorAll('[data-save]').forEach(input => {
+                const key = input.dataset.save;
+                if (data[key] !== undefined) {
+                    if (input.type === 'checkbox') {
+                        input.checked = data[key];
+                    } else {
+                        input.value = data[key];
+                    }
+                    if (input.classList.contains('target-input') || input.classList.contains('actual-input')) {
+                        input.dispatchEvent(new Event('input'));
+                    }
+                    if (input.id === 'travel-path-alarm-toggle') {
+                         input.dispatchEvent(new Event('change'));
+                    }
+                }
+            });
+            
+            // Populate checklist state and notes explicitly
+            document.querySelectorAll('.task-checkbox').forEach(box => {
+                const key = `check-${box.dataset.taskId}`;
+                box.checked = data[key] === true;
+            });
+            
+            document.querySelectorAll('.task-notes').forEach(note => {
+                const key = `notes-${note.dataset.taskId}`;
+                if (key && data[key] !== undefined) {
+                    note.value = data[key];
+                }
+            });
+            
+            updateCurrentShiftScore();
+            isPopulatingForm = false;
+        }
+
+        // Reusable Save Function (with Update Logic)
+        async function saveShiftData(isFinal = false, retryCount = 0) {
+            if (isPopulatingForm) {
+                console.warn("Save blocked: Form data is currently being loaded.");
+                return false;
+            }
+            
+            if (!isAuthReady || !db || !auth.currentUser) {
+                const statusEl = document.getElementById('plan-results-status');
+                 if(statusEl) statusEl.textContent = 'Error: Authentication not complete. Cannot save data.';
+                console.warn("Cannot save: User not authenticated.");
+                return false;
+            }
+            
+            const saveBtn = document.getElementById('save-plan-btn');
+            if(saveBtn) {
+                saveBtn.disabled = true;
+                saveBtn.textContent = isFinal ? 'Finalizing...' : 'Saving...';
+            }
+            
+            const planNameInput = document.getElementById('plan-name-input');
+            const shiftLeaderInput = document.getElementById('shift-leader'); 
+            const shiftDateInput = document.getElementById('shift-date');     
+
+            const shiftDate = shiftDateInput.value;
+            const shiftLeader = shiftLeaderInput.value.trim();
+            let planName = planNameInput.value.trim();
+
+            if (!planName && shiftDate && shiftLeader) {
+                 planName = `${shiftLeader} - ${shiftDate}`;
+                 planNameInput.value = planName;
+            }
+
+            if (!planName || !shiftDate || !shiftLeader) {
+                const errorMsg = "Please enter Shift Leader, Plan Name, and Shift Date in the Plans tab.";
+                console.warn(errorMsg);
+                if(planNameInput) planNameInput.classList.toggle('border-red-500', !planName);
+                if(shiftDateInput) shiftDateInput.classList.toggle('border-red-500', !shiftDate);
+                if(shiftLeaderInput) shiftLeaderInput.classList.toggle('border-red-500', !shiftLeader);
+
+                setTimeout(() => {
+                    if(planNameInput) planNameInput.classList.remove('border-red-500');
+                    if(shiftDateInput) shiftDateInput.classList.remove('border-red-500');
+                    if(shiftLeaderInput) shiftLeaderInput.classList.remove('border-red-500');
+                }, 2000);
+                if(saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = 'Save Current Plan';
+                }
+                return false;
+            }
+
+            const currentData = scrapeDataFromForm();
+            const author = shiftLeader;
+            const status = isFinal ? 'completed' : 'draft';
+            
+            try {
+                const plansCollection = getPlansCollection();
+                let docToUpdateId = null;
+
+                // 1. Search for existing plan by Manager and Date
+                const q = query(
+                    plansCollection,
+                    where("shiftDate", "==", shiftDate),
+                    where("author", "==", author),
+                    limit(1)
+                );
+                const snapshot = await getDocs(q);
+                if (!snapshot.empty) {
+                    docToUpdateId = snapshot.docs[0].id;
+                }
+                
+                // 2. Perform Update or Create
+                if (docToUpdateId) {
+                    const docRef = doc(db, 'shift_plans', docToUpdateId);
+                    await updateDoc(docRef, {
+                        name: planNameInput.value,
+                        author: author,
+                        shiftDate: shiftDate,
+                        status: status, 
+                        data: currentData,
+                        updatedAt: serverTimestamp()
+                    });
+                    currentDocId = docToUpdateId; 
+                    console.log(`%c[SAVE SUCCESS] Updated existing shift: ${currentDocId}`, "color: green; font-weight: bold;");
+                } else {
+                    const docRef = await addDoc(plansCollection, {
+                        name: planNameInput.value,
+                        author: author,
+                        shiftDate: shiftDate,
+                        status: status, 
+                        data: currentData,
+                        createdAt: serverTimestamp()
+                    });
+                    currentDocId = docRef.id; 
+                    console.log(`%c[SAVE SUCCESS] Created new shift: ${currentDocId}`, "color: green; font-weight: bold;");
+                }
+                
+                if(saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = isFinal ? 'Shift Finalized!' : 'Draft Saved!';
+                    setTimeout(() => {
+                        saveBtn.textContent = 'Save Current Plan';
+                    }, 2000);
+                }
+                return true;
+                
+            } catch (error) {
+                if (error.code === 'permission-denied' && retryCount < 3) {
+                    console.warn("Permission denied during save, retrying...", retryCount);
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    return saveShiftData(isFinal, retryCount + 1);
+                }
+                console.error("Error saving plan:", error);
+                if(saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = 'Error Saving';
+                }
+                return false;
+            }
+        }
+        
+        // --- Leaderboard Logic (Aggregated) ---
+        async function calculateAndSaveMonthlyWinner(retryCount = 0) {
+            if (!isAuthReady || !db || !auth.currentUser) return;
+            
+            const prev = getPreviousMonthKey();
+            const winnersCollection = getMonthlyWinnersCollection();
+            const plansCollection = getPlansCollection();
+            
+            try {
+                const winnerQ = query(winnersCollection, where("monthKey", "==", prev.key), limit(1));
+                const winnerSnap = await getDocs(winnerQ);
+                if (!winnerSnap.empty) return; 
+
+                const plansQ = query(plansCollection, where("status", "==", "completed"));
+                const snapshot = await getDocs(plansQ);
+                
+                let aggregatedStats = {};
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const manager = data.author || 'Unknown';
+                    
+                    if (!manager || !data.shiftDate || !data.shiftDate.startsWith(prev.key)) return;
+
+                    const pts = calculateShiftPercentages(data.data || {});
+                    
+                    if (!aggregatedStats[manager]) {
+                        aggregatedStats[manager] = { count: 0, sumOverall: 0, highestScore: 0 };
+                    }
+                    aggregatedStats[manager].count++;
+                    aggregatedStats[manager].sumOverall += pts.overall;
+                    if (pts.overall > aggregatedStats[manager].highestScore) {
+                        aggregatedStats[manager].highestScore = pts.overall;
+                    }
+                });
+
+                let leaderboardArray = Object.keys(aggregatedStats).map(manager => {
+                    const s = aggregatedStats[manager];
+                    return {
+                        manager: manager,
+                        shifts: s.count,
+                        overall: parseFloat((s.sumOverall / s.count).toFixed(2)),
+                        highestScore: s.highestScore
+                    };
+                });
+                
+                if (leaderboardArray.length === 0) return;
+
+                leaderboardArray.sort((a, b) => {
+                    if (b.overall !== a.overall) return b.overall - a.overall; 
+                    if (b.highestScore !== a.highestScore) return b.highestScore - a.highestScore; 
+                    return b.shifts - a.shifts; 
+                });
+                
+                const winner = leaderboardArray[0];
+
+                const winnerDocRef = doc(winnersCollection, prev.key); 
+                await setDoc(winnerDocRef, {
+                    monthKey: prev.key,
+                    year: prev.year,
+                    monthName: prev.name,
+                    winnerName: winner.manager,
+                    averageScore: winner.overall,
+                    totalShifts: winner.shifts,
+                    savedAt: serverTimestamp()
+                }, { merge: true });
+
+            } catch (e) {
+                if (e.code === 'permission-denied' && retryCount < 3) {
+                     await new Promise(resolve => setTimeout(resolve, 1500));
+                     return calculateAndSaveMonthlyWinner(retryCount + 1);
+                 }
+                console.error(`Error processing monthly winner for ${prev.key}:`, e);
+            }
+        }
+        
+        async function loadMonthlyWinners(retryCount = 0) {
+            if (!isAuthReady || !db) return;
+            const container = document.getElementById('monthly-winners-container');
+            const statusEl = document.getElementById('manager-of-the-year-status');
+            const yearDisplay = document.getElementById('current-year-display');
+            
+            const currentYear = new Date().getFullYear();
+            if (yearDisplay) yearDisplay.textContent = currentYear;
+
+            if (!container) return;
+            if (statusEl) statusEl.textContent = 'Loading monthly winners...'; 
+            
+            const monthNames = [
+                "January", "February", "March", "April", "May", "June", 
+                "July", "August", "September", "October", "November", "December"
+            ];
+
+            try {
+                const winnersCollection = getMonthlyWinnersCollection();
+                const q = query(winnersCollection, where("year", "==", currentYear));
+                const snapshot = await getDocs(q);
+                
+                let monthlyData = {};
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const monthIndex = parseInt(data.monthKey.split('-')[1], 10) - 1;
+                    monthlyData[monthIndex] = data;
+                });
+                
+                let cardsHtml = '';
+                let totalWins = 0;
+                
+                for (let i = 0; i < 12; i++) {
+                    const monthName = monthNames[i];
+                    const winner = monthlyData[i];
+                    
+                    if (winner) {
+                        totalWins++;
+                        const score = winner.averageScore.toFixed(0);
+                        cardsHtml += `
+                            <div class="month-card bg-green-50 border-green-200">
+                                <p class="text-sm font-bold text-green-700 mb-1">${monthName.toUpperCase()}</p>
+                                <p class="text-xl font-extrabold text-gray-900">${winner.winnerName}</p>
+                                <p class="text-xs text-green-600 mt-1">Score: ${score}% (${winner.totalShifts} Shifts)</p>
+                            </div>
+                        `;
+                    } else {
+                         cardsHtml += `
+                            <div class="month-card border border-gray-200 bg-gray-50">
+                                <p class="text-sm font-bold text-gray-500 mb-1">${monthName.toUpperCase()}</p>
+                                <p class="text-xl font-extrabold text-gray-400">TBD</p>
+                            </div>
+                        `;
+                    }
+                }
+                
+                container.innerHTML = cardsHtml;
+                if (statusEl) statusEl.textContent = `Displaying ${totalWins} months of performance data.`;
+
+            } catch (e) {
+                if (e.code === 'permission-denied' && retryCount < 3) {
+                     await new Promise(resolve => setTimeout(resolve, 1500));
+                     return loadMonthlyWinners(retryCount + 1);
+                 }
+                console.error("Error loading monthly winners:", e);
+                if (statusEl) statusEl.textContent = 'Error loading monthly data. Check database rules.';
+            }
+        }
+
+        async function loadLeaderboard(retryCount = 0) {
+             const tbody = document.getElementById('leaderboard-body');
+             const headerTitle = document.querySelector('#tab-leaderboard h2'); 
+             if(!tbody || !auth?.currentUser) return;
+             
+             const now = new Date();
+             const currentYear = now.getFullYear();
+             const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
+             const currentMonthKey = `${currentYear}-${currentMonth}`;
+             const monthName = now.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+             if (headerTitle) {
+                 headerTitle.innerHTML = `Manager Leaderboard <span class="text-gray-500 text-lg font-normal">- ${monthName}</span>`;
+             }
+             
+             if (retryCount === 0) {
+                 tbody.innerHTML = '<tr><td colspan="11" class="px-6 py-10 text-center text-gray-500">Loading rankings for ' + monthName + '...</td></tr>';
+             }
+             
+             try {
+                const plansCollection = getPlansCollection();
+                const q = query(plansCollection, where("status", "==", "completed"), limit(500)); 
+                const snapshot = await getDocs(q);
+                let aggregatedStats = {};
+
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const manager = data.author || 'Unknown';
+                    
+                    if(data.status !== 'completed' || manager === 'Unknown' || !manager) return;
+                    if (!data.shiftDate || !data.shiftDate.startsWith(currentMonthKey)) return;
+
+                    const pts = calculateShiftPercentages(data.data || {});
+                    
+                    if (!aggregatedStats[manager]) {
+                        aggregatedStats[manager] = {
+                            count: 0, sumOverall: 0, sumSales: 0, sumGC: 0, sumRW: 0, sumCFS: 0,
+                            sumOEPE: 0, sumAC: 0, sumR2P: 0, sumChecklist: 0
+                        };
+                    }
+                    
+                    const s = aggregatedStats[manager];
+                    s.count++;
+                    s.sumOverall += pts.overall;
+                    s.sumSales += pts.sales;
+                    s.sumGC += pts.gc;
+                    s.sumRW += pts.rw;
+                    s.sumCFS += pts.cfs;
+                    s.sumOEPE += pts.oepe;
+                    s.sumAC += pts.ac;
+                    s.sumR2P += pts.r2p;
+                    s.sumChecklist += pts.checklist;
+                });
+
+                let leaderboardArray = Object.keys(aggregatedStats).map(manager => {
+                    const s = aggregatedStats[manager];
+                    const avg = (key) => parseFloat((s[key] / s.count).toFixed(2));
+                    
+                    return {
+                        manager: manager, shifts: s.count, overall: avg('sumOverall'),
+                        sales: avg('sumSales'), gc: avg('sumGC'), rw: avg('sumRW'), cfs: avg('sumCFS'),
+                        oepe: avg('sumOEPE'), ac: avg('sumAC'), r2p: avg('sumR2P'), checklist: avg('sumChecklist')
+                    };
+                });
+
+                leaderboardArray.sort((a, b) => b.overall - a.overall);
+                
+                if(leaderboardArray.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="11" class="px-6 py-10 text-center text-gray-500">No completed shifts recorded yet for ${monthName}.</td></tr>`;
+                    return;
+                }
+
+                const totalMaxLeaderboardScore = 100;
+
+                tbody.innerHTML = leaderboardArray.map((entry, index) => {
+                    const rank = index + 1;
+                    let rankClass = 'rank-other';
+                    if(rank === 1) rankClass = 'rank-1';
+                    if(rank === 2) rankClass = 'rank-2';
+                    if(rank === 3) rankClass = 'rank-3';
+                    
+                    const MAX = { sales: 15, gc: 10, rw: 10, cfs: 10, oepe: 15, ac: 10, r2p: 15, checklist: 15 };
+                    
+                    const cell = (val, max) => {
+                        const isMax = Math.abs(val - max) < 0.1; 
+                        const isGood = val >= (max * 0.85); 
+                        const displayVal = val.toFixed(2).replace(/\.00$/, ''); 
+                        
+                        if (isMax) return `<span class="text-green-600 font-extrabold text-xs">${displayVal}</span>`;
+                        if (isGood) return `<span class="text-yellow-600 font-semibold text-xs">${displayVal}</span>`;
+                        return `<span class="text-red-600 text-xs">${displayVal}</span>`;
+                    };
+
+                    const overallPercentage = ((entry.overall / totalMaxLeaderboardScore) * 100).toFixed(0) + '%'; 
+
+                    return `
+                        <tr class="hover:bg-gray-50 border-b border-gray-100 transition-colors">
+                            <td class="py-3 px-4 whitespace-nowrap text-center">
+                                <div class="rank-circle ${rankClass} mx-auto">${rank}</div>
+                            </td>
+                            <td class="py-3 px-4 whitespace-nowrap">
+                                <div class="text-sm font-bold text-gray-900">${entry.manager}</div>
+                                <div class="text-xs text-gray-400">${entry.shifts} Shift(s)</div>
+                            </td>
+                            <td class="py-3 px-4 whitespace-nowrap text-center bg-yellow-50 border-x border-yellow-100">
+                                <span class="text-lg font-extrabold text-mcd-red">${overallPercentage}</span>
+                            </td>
+                            <td class="py-3 px-2 text-center">${cell(entry.sales, MAX.sales)}</td>
+                            <td class="py-3 px-2 text-center">${cell(entry.gc, MAX.gc)}</td>
+                            <td class="py-3 px-2 text-center">${cell(entry.rw, MAX.rw)}</td>
+                            <td class="py-3 px-2 text-center">${cell(entry.cfs, MAX.cfs)}</td>
+                            <td class="py-3 px-2 text-center">${cell(entry.oepe, MAX.oepe)}</td>
+                            <td class="py-3 px-2 text-center">${cell(entry.ac, MAX.ac)}</td>
+                            <td class="py-3 px-2 text-center">${cell(entry.r2p, MAX.r2p)}</td>
+                            <td class="py-3 px-2 text-center">${cell(entry.checklist, MAX.checklist)}</td>
+                        </tr>
+                    `;
+                }).join('');
+             } catch(e) {
+                 if (e.code === 'permission-denied' && retryCount < 3) {
+                     await new Promise(resolve => setTimeout(resolve, 1500));
+                     return loadLeaderboard(retryCount + 1);
+                 }
+                 console.error("Error loading leaderboard:", e);
+                 tbody.innerHTML = '<tr><td colspan="11" class="px-6 py-10 text-center text-red-500">Error loading data. Check console for details.</td></tr>';
+             }
+        }
+        
+        async function initLeaderboard() {
+            if (!isAuthReady || !db) return;
+            const refreshBtn = document.getElementById('refresh-leaderboard-btn');
+            if(refreshBtn) {
+                refreshBtn.addEventListener('click', () => loadLeaderboard());
+            }
+            // 1. Calculate and save last month's winner (if applicable)
+            await calculateAndSaveMonthlyWinner();
+            
+            // 2. Load the current month's rankings and the monthly history
+            loadLeaderboard();
+            loadMonthlyWinners();
+        }
 
         // --- Firestore Shift Plans ---
         function initShiftPlans() {
             if (!isAuthReady || !db) return; 
-            
-            // Guard clause: prevent double listeners
             if(isListenersInitialized) return;
 
-            // DIRECT PATH: Root 'shift_plans' collection
-            const plansCollection = collection(db, 'shift_plans');
+            const plansCollection = getPlansCollection();
+            const savePlanBtn = document.getElementById('save-plan-btn');
+            const planResultsContainer = document.getElementById('plan-results-container');
+            const planResultsStatus = document.getElementById('plan-results-status');
 
             // 1. Save Current Plan
             if (savePlanBtn) {
                 savePlanBtn.addEventListener('click', async () => {
-                    // Call dedicated save function (DRAFT)
+                    currentDocId = null; 
                     const success = await saveShiftData(false);
                     if (success) {
-                        const statusEl = document.getElementById('plan-results-status');
-                        if(statusEl) statusEl.textContent = `Successfully saved draft!`;
-                        if(document.getElementById('plan-results-container')) document.getElementById('plan-results-container').innerHTML = '';
+                        if(planResultsStatus) planResultsStatus.textContent = `Successfully saved draft! (ID: ${currentDocId})`;
+                        if(planResultsContainer) planResultsContainer.innerHTML = '';
                     }
                 });
             }
@@ -858,14 +1625,12 @@
             const findPlansBtn = document.getElementById('find-plans-btn');
             const findAllPlansBtn = document.getElementById('find-all-plans-btn');
             const planDateInput = document.getElementById('plan-date-input');
-            const planResultsContainer = document.getElementById('plan-results-container');
-            const planResultsStatus = document.getElementById('plan-results-status');
 
             if (findPlansBtn) {
                 findPlansBtn.addEventListener('click', async () => {
                     const selectedDate = planDateInput.value;
                     if (!selectedDate) {
-                        planResultsStatus.textContent = 'Please select a date first.';
+                        if(planResultsStatus) planResultsStatus.textContent = 'Please select a date first.';
                         return;
                     }
                     performSearch(plansCollection, planResultsStatus, planResultsContainer, selectedDate);
@@ -882,71 +1647,64 @@
             if (planResultsContainer) {
                 planResultsContainer.addEventListener('click', async (e) => {
                     const loadButton = e.target.closest('.load-plan-btn');
-                    if (!loadButton) return; // Didn't click a load button
+                    if (!loadButton) return;
 
                     const docId = loadButton.dataset.docId;
                     if (!docId) return;
 
-                    // Add loading state to button
-                    loadButton.innerHTML = '<span>Loading...</span>';
-                    loadButton.disabled = true;
+                    document.querySelectorAll('.load-plan-btn').forEach(btn => {
+                        btn.disabled = true;
+                        if (btn.dataset.docId === docId) {
+                            btn.querySelector('span:last-child').textContent = 'Loading...';
+                        }
+                    });
 
                     try {
-                        // DIRECT PATH
                         const docRef = doc(db, 'shift_plans', docId);
                         const docSnap = await getDoc(docRef);
 
                         if (docSnap.exists()) {
                             const loadedData = docSnap.data().data;
-                            currentDocId = docId; // Set currentDocId so subsequent saves update this doc
+                            currentDocId = docId; 
 
                             populateFormWithData(loadedData); 
                             showTab(localStorage.getItem('activeTab') || 'pre-shift');
                             
-                            // Remove all results after loading
                             planResultsContainer.innerHTML = '';
                             planResultsStatus.textContent = `Successfully loaded "${docSnap.data().name}".`;
                             
-                            // Recalc score
-                            updateCurrentShiftScore();
-
                         } else {
                             console.warn("Selected plan not found.");
-                            planResultsStatus.textContent = 'Error: That plan could not be found.';
+                            if(planResultsStatus) planResultsStatus.textContent = 'Error: That plan could not be found.';
                         }
                     } catch (error) {
                         console.error("Error loading plan:", error);
-                        planResultsStatus.textContent = 'An error occurred while loading the plan.';
-                        loadButton.innerHTML = '<span>Error</span>';
+                        if(planResultsStatus) planResultsStatus.textContent = 'An error occurred while loading the plan.';
+                    } finally {
+                        document.querySelectorAll('.load-plan-btn').forEach(btn => {
+                            btn.disabled = false;
+                            btn.querySelector('span:last-child').textContent = 'Load';
+                        });
                     }
                 });
             }
             
             isListenersInitialized = true;
         }
-        
-        async function performSearch(collectionRef, statusEl, containerEl, dateFilter) {
-            // Guard clause for auth
+
+        async function performSearch(collectionRef, statusEl, containerEl, dateFilter, retryCount = 0) {
             if (!auth.currentUser) {
-                // IMPROVED ERROR HANDLING:
-                // If we are 'ready' but have no user, it means auth failed (likely disabled in console)
-                if (isAuthReady) {
-                     statusEl.innerHTML = `<span class="text-red-600 font-bold">Authentication Error:</span><br>
-                     Could not sign in. Please ensure <strong>Anonymous Auth</strong> is enabled in the Firebase Console.<br>
-                     (Build > Authentication > Sign-in method > Anonymous)`;
-                } else {
-                    statusEl.textContent = 'Waiting for authentication... (Initializing)';
-                }
+                 statusEl.textContent = 'Waiting for authentication/database connection...';
                 return;
             }
             
             statusEl.textContent = dateFilter ? `Searching for plans on ${dateFilter}...` : 'Loading recent plans...';
-            containerEl.innerHTML = ''; // Clear old results
+            containerEl.innerHTML = '';
 
             try {
                 let q;
                 if (dateFilter) {
-                    q = query(collectionRef, where("shiftDate", "==", dateFilter));
+                    q = query(collectionRef, where("shiftDate", "==", dateFilter), limit(10));
                 } else {
                     q = query(collectionRef, limit(10));
                 }
@@ -987,417 +1745,66 @@
                 containerEl.innerHTML = plansHtml;
 
             } catch (error) {
-                console.error("Error finding plans:", error);
+                if (error.code === 'permission-denied' && retryCount < 3) {
+                     await new Promise(resolve => setTimeout(resolve, 1500));
+                     return performSearch(collectionRef, statusEl, containerEl, dateFilter, retryCount + 1);
+                 }
                 statusEl.textContent = 'Error: ' + error.message;
             }
         }
-
-        // Reusable Save Function (with Update Logic)
-        async function saveShiftData(isFinal = false, retryCount = 0) {
-            if (!isAuthReady || !db) return false;
-            if (!auth.currentUser) {
-                console.warn("Cannot save: User not authenticated yet.");
-                return false;
-            }
-            
-            const saveBtn = document.getElementById('save-plan-btn');
-            if(saveBtn) {
-                saveBtn.disabled = true;
-                saveBtn.textContent = 'Saving...';
-            }
-            
-            const planNameInput = document.getElementById('plan-name-input');
-            const shiftLeaderInput = document.getElementById('shift-leader'); 
-            const shiftDateInput = document.getElementById('shift-date');     
-
-            const planName = planNameInput.value.trim();
-            const shiftDate = shiftDateInput.value;
-            const shiftLeader = shiftLeaderInput.value.trim();
-
-            // Basic Validation
-            if (!planName) {
-                // Auto-generate plan name if empty but we have details
-                if(shiftDate && shiftLeader) {
-                    planNameInput.value = `${shiftLeader} - ${shiftDate}`;
-                } else {
-                    console.warn("Please enter a plan name.");
-                    planNameInput.classList.add('border-red-500');
-                    setTimeout(() => planNameInput.classList.remove('border-red-500'), 2000);
-                    if(saveBtn) {
-                        saveBtn.disabled = false;
-                        saveBtn.textContent = 'Save Current Plan';
-                    }
-                    return false;
-                }
-            }
-            
-            if (!shiftDate) {
-                console.warn("Please set a Shift Date.");
-                shiftDateInput.classList.add('border-red-500');
-                setTimeout(() => shiftDateInput.classList.remove('border-red-500'), 2000);
-                 if(saveBtn) {
-                    saveBtn.disabled = false;
-                    saveBtn.textContent = 'Save Current Plan';
-                }
-                return false;
-            }
-
-            const currentData = scrapeDataFromForm();
-            const author = shiftLeader || 'Manager';
-            const status = isFinal ? 'completed' : 'draft';
-            
+        
+        // --- Firestore Initialization ---
+        function initFirebase() {
             try {
-                // DIRECT PATH
-                const plansCollection = collection(db, 'shift_plans');
-                
-                if (currentDocId) {
-                    // Update existing document
-                    const docRef = doc(db, 'shift_plans', currentDocId);
-                    await updateDoc(docRef, {
-                        name: planNameInput.value,
-                        author: author,
-                        shiftDate: shiftDate,
-                        status: status, 
-                        data: currentData,
-                        updatedAt: serverTimestamp()
-                    });
-                    console.log(`%c[SAVE SUCCESS] Updated existing shift: ${currentDocId}`, "color: green; font-weight: bold;");
-                } else {
-                    // Create new document
-                    const docRef = await addDoc(plansCollection, {
-                        name: planNameInput.value,
-                        author: author,
-                        shiftDate: shiftDate,
-                        status: status, 
-                        data: currentData,
-                        createdAt: serverTimestamp()
-                    });
-                    currentDocId = docRef.id; 
-                    console.log(`%c[SAVE SUCCESS] Created new shift: ${currentDocId}`, "color: green; font-weight: bold;");
-                }
-                
-                // Success
-                if(saveBtn) {
-                    saveBtn.disabled = false;
-                    saveBtn.textContent = isFinal ? 'Shift Finalized!' : 'Draft Saved!';
-                    setTimeout(() => {
-                        saveBtn.textContent = 'Save Current Plan';
-                    }, 2000);
-                }
-                return true;
-                
-            } catch (error) {
-                if (error.code === 'permission-denied' && retryCount < 3) {
-                    console.warn("Permission denied during save, retrying...", retryCount);
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                    return saveShiftData(isFinal, retryCount + 1);
-                }
-                console.error("Error saving plan:", error);
-                if(saveBtn) {
-                    saveBtn.disabled = false;
-                    saveBtn.textContent = 'Error Saving';
-                }
-                return false;
+                const appInstance = initializeApp(firebaseConfig);
+                db = getFirestore(appInstance);
+                auth = getAuth(appInstance);
+            } catch (e) {
+                console.error("Firebase failed to initialize:", e);
+                // CRITICAL FIX: Ensure the body is rendered with an error message instead of crashing silently
+                document.getElementById('main-content').innerHTML = `<div class="p-8 text-center text-red-600 bg-white rounded-xl shadow-lg">
+                    <h2 class="text-2xl font-bold mb-4">Application Initialization Error</h2>
+                    <p>The app could not start because the database failed to initialize. Please check the browser console for details.</p>
+                </div>`;
+                throw e; 
             }
-        }
-
-
-        // --- Leaderboard Logic (Aggregated) ---
-        async function initLeaderboard() {
-            if (!isAuthReady || !db) return;
-
-            const refreshBtn = document.getElementById('refresh-leaderboard-btn');
-            if(refreshBtn) {
-                refreshBtn.addEventListener('click', () => loadLeaderboard());
-            }
-            // Initial load
-            loadLeaderboard();
-        }
-
-        function calculateShiftPercentages(data) {
-            const val = (key) => parseFloat(data[key]) || 0;
-            
-            // WEIGHTS CONFIGURATION
-            const weights = {
-                sales: 15,
-                gc: 10,
-                ac: 10,
-                rw: 10,
-                oepe: 15,
-                r2p: 15,
-                cfs: 10,
-                checklist: 15 
-            };
-
-            // Helper for Weighted Calculation
-            const calcWeighted = (actual, target, weight, isLowerBetter) => {
-                if (target === undefined || target === null || isNaN(target) || target === "" || target == 0) return 0;
-                
-                let achievementRatio = 0;
-
-                if (isLowerBetter) {
-                    if (actual === 0) {
-                        achievementRatio = 1; 
-                    } else if (actual <= target) {
-                        achievementRatio = 1; 
-                    } else {
-                        achievementRatio = target / actual;
-                    }
-                } else {
-                    if (actual >= target) {
-                        achievementRatio = 1; 
-                    } else {
-                        achievementRatio = actual / target;
-                    }
-                }
-                achievementRatio = Math.min(Math.max(achievementRatio, 0), 1);
-                return parseFloat((achievementRatio * weight).toFixed(2));
-            };
-
-            const sales = calcWeighted(val('actual-sales'), val('target-sales'), weights.sales, false);
-            const gc = calcWeighted(val('actual-gc'), val('target-gc'), weights.gc, false);
-            const ac = calcWeighted(val('actual-ac'), val('target-ac'), weights.ac, false);
-            const cfs = calcWeighted(val('actual-cfs'), val('target-cfs'), weights.cfs, false);
-            
-            const rw = calcWeighted(val('actual-rw'), val('target-rw'), weights.rw, true);
-            const oepe = calcWeighted(val('actual-oepe'), val('target-oepe'), weights.oepe, true);
-            const r2p = calcWeighted(val('actual-r2p'), val('target-r2p'), weights.r2p, true);
-
-            // Checklists Calculation - Pro-rated against weight
-            let checked = 0;
-            let totalCheckboxes = 0;
-            Object.keys(data).forEach(k => {
-                if (k.startsWith('check-')) {
-                    totalCheckboxes++;
-                    if (data[k]) checked++;
-                }
-            });
-            
-            const checklistRatio = totalCheckboxes === 0 ? 0 : (checked / totalCheckboxes);
-            const checklist = parseFloat((checklistRatio * weights.checklist).toFixed(2));
-
-            // Total Consolidated Score
-            const overall = parseFloat((sales + gc + ac + cfs + rw + oepe + r2p + checklist).toFixed(2));
-
-            return { sales, gc, ac, cfs, rw, oepe, r2p, checklist, overall };
-        }
-
-        async function loadLeaderboard(retryCount = 0) {
-             const tbody = document.getElementById('leaderboard-body');
-             const headerTitle = document.querySelector('#tab-leaderboard h2'); 
-             if(!tbody) return;
-             
-             if (!auth.currentUser) {
-                 return;
-             }
-
-             // MONTHLY FILTER LOGIC
-             const now = new Date();
-             const currentYear = now.getFullYear();
-             const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
-             const currentMonthKey = `${currentYear}-${currentMonth}`;
-             
-             const monthName = now.toLocaleString('default', { month: 'long', year: 'numeric' });
-
-             if (headerTitle) {
-                 headerTitle.innerHTML = `Manager Leaderboard <span class="text-gray-500 text-lg font-normal">- ${monthName}</span>`;
-                 headerTitle.nextElementSibling.textContent = "Ranking based on accumulated achievement for the current month";
-             }
-             
-             if (retryCount === 0) {
-                 const thead = document.querySelector('#tab-leaderboard thead tr');
-                 if(thead) {
-                     thead.innerHTML = `
-                        <th class="py-3 px-4 font-semibold w-16 text-center">Rank</th>
-                        <th class="py-3 px-4 font-semibold">Manager</th>
-                        <th class="py-3 px-4 font-semibold text-center bg-yellow-50 text-mcd-red border-x border-yellow-100">Total Pts</th>
-                        <th class="py-3 px-2 font-semibold text-center text-xs text-gray-500">Sales (15)</th>
-                        <th class="py-3 px-2 font-semibold text-center text-xs text-gray-500">GC (10)</th>
-                        <th class="py-3 px-2 font-semibold text-center text-xs text-gray-500">RW (10)</th>
-                        <th class="py-3 px-2 font-semibold text-center text-xs text-gray-500">CFS (10)</th>
-                        <th class="py-3 px-2 font-semibold text-center text-xs text-gray-500">OEPE (15)</th>
-                        <th class="py-3 px-2 font-semibold text-center text-xs text-gray-500">AC (10)</th>
-                        <th class="py-3 px-2 font-semibold text-center text-xs text-gray-500">R2P (15)</th>
-                        <th class="py-3 px-2 font-semibold text-center text-xs text-gray-500">Checklist (15)</th>
-                     `;
-                 }
-                 tbody.innerHTML = '<tr><td colspan="11" class="px-6 py-10 text-center text-gray-500">Loading rankings for ' + monthName + '...</td></tr>';
-             }
-             
-             try {
-                // DIRECT PATH
-                const plansCollection = collection(db, 'shift_plans');
-                
-                const q = query(plansCollection, limit(200)); 
-                
-                const snapshot = await getDocs(q);
-                
-                let aggregatedStats = {};
-
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    const manager = data.author || 'Unknown';
-                    
-                    if(data.status !== 'completed') return;
-                    if(manager === 'Unknown' || !manager) return;
-
-                    // Ensure the shift date starts with "YYYY-MM"
-                    if (!data.shiftDate || !data.shiftDate.startsWith(currentMonthKey)) {
-                        return; // Skip shifts not in this month
-                    }
-
-                    const pts = calculateShiftPercentages(data.data || {});
-                    
-                    if (!aggregatedStats[manager]) {
-                        aggregatedStats[manager] = {
-                            count: 0,
-                            sumOverall: 0,
-                            sumSales: 0, sumGC: 0, sumRW: 0, sumCFS: 0,
-                            sumOEPE: 0, sumAC: 0, sumR2P: 0, sumChecklist: 0
-                        };
-                    }
-                    
-                    const s = aggregatedStats[manager];
-                    s.count++;
-                    s.sumOverall += pts.overall;
-                    s.sumSales += pts.sales;
-                    s.sumGC += pts.gc;
-                    s.sumRW += pts.rw;
-                    s.sumCFS += pts.cfs;
-                    s.sumOEPE += pts.oepe;
-                    s.sumAC += pts.ac;
-                    s.sumR2P += pts.r2p;
-                    s.sumChecklist += pts.checklist;
-                });
-
-                // Calculate Averages
-                let leaderboardArray = Object.keys(aggregatedStats).map(manager => {
-                    const s = aggregatedStats[manager];
-                    const avg = (key) => parseFloat((s[key] / s.count).toFixed(2));
-                    
-                    return {
-                        manager: manager,
-                        shifts: s.count,
-                        overall: avg('sumOverall'),
-                        sales: avg('sumSales'),
-                        gc: avg('sumGC'),
-                        rw: avg('sumRW'),
-                        cfs: avg('sumCFS'),
-                        oepe: avg('sumOEPE'),
-                        ac: avg('sumAC'),
-                        r2p: avg('sumR2P'),
-                        checklist: avg('sumChecklist')
-                    };
-                });
-
-                leaderboardArray.sort((a, b) => b.overall - a.overall);
-                
-                if(leaderboardArray.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="11" class="px-6 py-10 text-center text-gray-500">No completed shifts recorded yet for ${monthName}.</td></tr>`;
-                    return;
-                }
-
-                // Render
-                tbody.innerHTML = leaderboardArray.map((entry, index) => {
-                    const rank = index + 1;
-                    let rankClass = 'rank-other';
-                    if(rank === 1) rankClass = 'rank-1';
-                    if(rank === 2) rankClass = 'rank-2';
-                    if(rank === 3) rankClass = 'rank-3';
-                    
-                    const cell = (val, max) => {
-                        const isMax = Math.abs(val - max) < 0.1; 
-                        if (isMax) return `<span class="text-green-600 font-extrabold text-xs">${val}</span>`;
-                        return `<span class="text-gray-600 font-medium text-xs">${val}</span>`;
-                    };
-
-                    return `
-                        <tr class="hover:bg-gray-50 border-b border-gray-100 transition-colors">
-                            <td class="py-3 px-4 whitespace-nowrap text-center">
-                                <div class="leaderboard-rank ${rankClass} mx-auto">${rank}</div>
-                            </td>
-                            <td class="py-3 px-4 whitespace-nowrap">
-                                <div class="text-sm font-bold text-gray-900">${entry.manager}</div>
-                                <div class="text-xs text-gray-400">${entry.shifts} Shift(s)</div>
-                            </td>
-                            <td class="py-3 px-4 whitespace-nowrap text-center bg-yellow-50 border-x border-yellow-100">
-                                <span class="text-lg font-extrabold text-mcd-red">${entry.overall}%</span>
-                            </td>
-                            <td class="py-3 px-2 text-center">${cell(entry.sales, 15)}</td>
-                            <td class="py-3 px-2 text-center">${cell(entry.gc, 10)}</td>
-                            <td class="py-3 px-2 text-center">${cell(entry.rw, 10)}</td>
-                            <td class="py-3 px-2 text-center">${cell(entry.cfs, 10)}</td>
-                            <td class="py-3 px-2 text-center">${cell(entry.oepe, 15)}</td>
-                            <td class="py-3 px-2 text-center">${cell(entry.ac, 10)}</td>
-                            <td class="py-3 px-2 text-center">${cell(entry.r2p, 15)}</td>
-                            <td class="py-3 px-2 text-center">${cell(entry.checklist, 15)}</td>
-                        </tr>
-                    `;
-                }).join('');
-             } catch(e) {
-                 if (e.code === 'permission-denied' && retryCount < 3) {
-                     console.warn("Permission denied loading leaderboard, retrying...", retryCount);
-                     setTimeout(() => loadLeaderboard(retryCount + 1), 1500); 
-                     return;
-                 }
-                 console.error("Error loading leaderboard:", e);
-                 tbody.innerHTML = '<tr><td colspan="11" class="px-6 py-10 text-center text-red-500">Error loading data.</td></tr>';
-             }
         }
         
-        // Helper to calculate score from raw saved data object
-        function calculateScoreFromData(data) {
-            let score = 0;
-            let salesHit = false;
-            let oepeHit = false;
-            
-            // Helper to parse float from data safely
-            const val = (key) => parseFloat(data[key]) || 0;
+        async function authenticateUser() {
+            try {
+                await signInAnonymously(auth);
 
-            // 1. Hit Sales Target (+15 pts)
-            const targetSales = val('target-sales');
-            const actualSales = val('actual-sales');
-            if (targetSales > 0 && actualSales >= targetSales) {
-                score += 15;
-                salesHit = true;
-            }
-
-            // 2. OEPE Speed (+15 pts)
-            const actualOEPE = val('actual-oepe');
-            const targetOEPE = val('target-oepe');
-            if (targetOEPE > 0 && actualOEPE <= targetOEPE) {
-                score += 15;
-                oepeHit = true;
+            } catch (e) {
+                console.error("Authentication failed during sign-in:", e);
             }
             
-            // 3. Other Metrics
-            if(val('target-gc') > 0 && val('actual-gc') >= val('target-gc')) score += 10;
-            if(val('target-ac') > 0 && val('actual-ac') >= val('target-ac')) score += 10;
-            
-            const rwTarget = val('target-rw');
-            const rwActual = val('actual-rw');
-            if(rwActual <= rwTarget) score += 10;
-
-            if(val('target-r2p') > 0 && val('actual-r2p') <= val('target-r2p')) score += 10;
-            if(val('target-cfs') > 0 && val('actual-cfs') >= val('target-cfs')) score += 10;
-
-            // 4. Checklists (+20 pts pro-rated)
-            let checkedCount = 0;
-            Object.keys(data).forEach(key => {
-                if(key.startsWith('check-') && data[key] === true) {
-                    checkedCount++;
+            onAuthStateChanged(auth, (user) => {
+                const statusBadge = document.getElementById('auth-status-badge');
+                const userIdDisplay = document.getElementById('display-user-id');
+                
+                if (user) {
+                    userId = user.uid;
+                    userIdDisplay.textContent = userId;
+                    statusBadge.textContent = 'Authenticated (Online)';
+                    statusBadge.classList.remove('bg-yellow-100', 'text-yellow-800', 'bg-red-100', 'text-red-800');
+                    statusBadge.classList.add('bg-green-100', 'text-green-800');
+                } else {
+                    userId = 'anonymous'; 
+                    userIdDisplay.textContent = 'Anonymous (Offline)';
+                    statusBadge.textContent = 'Auth Failed (Offline)';
+                    statusBadge.classList.remove('bg-yellow-100', 'text-yellow-800', 'bg-green-100', 'text-green-800');
+                    statusBadge.classList.add('bg-red-100', 'text-red-800');
                 }
+                
+                isAuthReady = true;
+                
+                initShiftPlans();
+                initLeaderboard(); 
             });
-            const EST_TOTAL_TASKS = 60;
-            const checklistScore = Math.min(20, Math.round((checkedCount / EST_TOTAL_TASKS) * 20));
-            score += checklistScore;
-            
-            return { score, salesHit, oepeHit };
         }
 
-
-        // RESTORED FULL TASK LISTS
-        const preShiftTasks = [
+        // --- TASK LISTS ---
+        const preShiftTasks = [ 
             {
                 title: "Shift Preparation (Completed the day before)",
                 tasks: [
@@ -1491,10 +1898,7 @@
                 ]
             }
         ];
-        
-        // Empty during shift tasks as requested
-        const duringShiftTasks = [];
-        
+        const duringShiftTasks = []; 
         const travelPathTasks = [
             {
                 title: "Outside Restaurant",
@@ -1655,12 +2059,10 @@
                 ] 
             }
         ];
-        
         const postShiftTasks = [];
-
-
+        
         // --- Utility Functions ---
-        function createSlug(text) {
+        function createSlug(text) { 
             if (typeof text !== 'string') { return ''; }
             return text.toLowerCase()
                 .replace(/\s+/g, '-')
@@ -1669,31 +2071,31 @@
                 .replace(/^-+/, '')
                 .replace(/-+$/, '');
         }
-
         function createTaskItem(taskText, sectionSlug, taskIndex) {
-            const taskId = `task-${sectionSlug}-task-${taskIndex}`;
+             const taskId = `${sectionSlug}-${taskIndex}`;
             return `
-                <div class="task-item py-3 flex flex-col md:flex-row md:items-center hover:bg-gray-50 transition-colors rounded-lg px-2">
-                    <div class="flex items-center flex-1 mb-2 md:mb-0 group cursor-pointer">
-                        <div class="relative flex items-center">
-                            <!-- Added task-checkbox class back here -->
-                            <input type="checkbox" id="check-${taskId}" data-task-id="${taskId}" data-section="${sectionSlug}" class="task-checkbox peer appearance-none h-6 w-6 border-2 border-gray-300 rounded checked:bg-green-500 checked:border-green-500 transition-all cursor-pointer" onclick="updateCurrentShiftScore()">
-                            <svg class="absolute w-4 h-4 text-white hidden peer-checked:block pointer-events-none left-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                <div class="task-item">
+                    <div class="task-main-row">
+                        <div class="relative flex items-center flex-shrink-0 mr-3 mt-1">
+                            <input type="checkbox" id="check-${taskId}" data-task-id="${taskId}" data-section="${sectionSlug}" data-save="check-${taskId}" class="task-checkbox peer appearance-none h-6 w-6 border-2 border-gray-300 rounded checked:bg-green-500 checked:border-green-500 transition-all cursor-pointer" onchange="updateCurrentShiftScore(); saveShiftData(false);">
+                            <svg class="absolute w-4 h-4 text-white hidden peer-checked:block pointer-events-none left-1" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
                         </div>
-                        <label for="check-${taskId}" class="ml-3 text-gray-700 font-medium peer-checked:text-gray-400 peer-checked:line-through transition-colors cursor-pointer select-none flex-1 py-2">${taskText}</label>
+                        <label for="check-${taskId}" class="text-gray-700 font-medium peer-checked:text-gray-400 peer-checked:line-through transition-colors cursor-pointer select-none flex-1 py-1">
+                            ${taskText}
+                        </label>
                     </div>
-                    <div class="flex items-center w-full md:w-auto pl-9 md:pl-0">
-                        <input type="text" id="notes-${taskId}" data-task-id="${taskId}" placeholder="Note..." class="task-notes border-0 border-b border-gray-200 bg-transparent focus:border-yellow-400 focus:ring-0 text-sm w-full md:w-48 mr-2 transition-colors">
-                        <button class="reminder-btn text-gray-400 hover:text-yellow-500 transition-colors p-1" data-task-id="${taskId}" data-task-name="${taskText}">
+                    
+                    <div class="task-note-row">
+                        <input type="text" id="notes-${taskId}" data-task-id="${taskId}" data-save="notes-${taskId}" placeholder="Note..." class="task-notes text-sm mr-2 transition-colors">
+                        <button class="reminder-btn text-gray-400 hover:text-yellow-500 transition-colors p-1 flex-shrink-0" data-task-id="${taskId}" data-task-name="${taskText}">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
                         </button>
                     </div>
                 </div>
             `;
         }
-        
         function createAccordionSection(title, tasks) {
-            const sectionSlug = createSlug(title);
+             const sectionSlug = createSlug(title);
             const tasksHtml = tasks.map((task, index) => createTaskItem(task, sectionSlug, index)).join('');
             
             return `
@@ -1720,8 +2122,8 @@
                     <div class="accordion-content bg-gray-50 border-t border-gray-100 hidden">
                         <div class="p-4 pt-2">
                             <div class="flex justify-end mb-2 space-x-2">
-                                <button onclick="toggleSectionTasks('${sectionSlug}', true)" class="text-xs font-bold text-green-600 hover:bg-green-50 px-3 py-1 rounded transition-colors border border-transparent hover:border-green-200">Check All</button>
-                                <button onclick="toggleSectionTasks('${sectionSlug}', false)" class="text-xs font-bold text-gray-500 hover:bg-gray-100 px-3 py-1 rounded transition-colors">Reset</button>
+                                <button onclick="window.toggleSectionTasks('${sectionSlug}', true)" class="text-xs font-bold text-green-600 hover:bg-green-50 px-3 py-1 rounded transition-colors border border-transparent hover:border-green-200">Check All</button>
+                                <button onclick="window.toggleSectionTasks('${sectionSlug}', false)" class="text-xs font-bold text-gray-500 hover:bg-gray-100 px-3 py-1 rounded transition-colors">Reset</button>
                             </div>
                             <div class="space-y-1">
                                 ${tasksHtml}
@@ -1731,37 +2133,20 @@
                 </div>
             `;
         }
-
         function setupAccordions() {
             const preShiftContainer = document.getElementById('pre-shift-accordion-container');
-            const duringShiftContainer = document.getElementById('during-shift-accordion-container');
             const travelPathContainer = document.getElementById('travel-path-accordion-container');
-            const postShiftContainer = document.getElementById('post-shift-accordion-container');
             
             if(preShiftContainer) preShiftContainer.innerHTML = preShiftTasks.map(section => createAccordionSection(section.title, section.tasks)).join('');
-            if(duringShiftContainer) duringShiftContainer.innerHTML = duringShiftTasks.map(section => createAccordionSection(section.title, section.tasks)).join('');
             if(travelPathContainer) travelPathContainer.innerHTML = travelPathTasks.map(section => createAccordionSection(section.title, section.tasks)).join('');
-            if(postShiftContainer) postShiftContainer.innerHTML = postShiftTasks.map(section => createAccordionSection(section.title, section.tasks)).join('');
-
-            document.querySelectorAll('.collapse-section-btn').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    const accordionItem = e.target.closest('.accordion-item');
-                    if (accordionItem) {
-                        const content = accordionItem.querySelector('.accordion-content');
-                        const arrow = accordionItem.querySelector('.accordion-arrow');
-                        if(content) content.classList.remove('open', 'hidden');
-                        if(content) content.classList.add('hidden');
-                        if(arrow) arrow.classList.remove('open');
-                    }
-                });
-            });
         }
-        
         window.toggleAccordion = function(header) {
             const content = header.nextElementSibling;
             const arrow = header.querySelector('.accordion-arrow');
             
-            if (content.classList.contains('hidden')) {
+            const isHidden = content.classList.contains('hidden');
+            
+            if (isHidden) {
                 content.classList.remove('hidden');
                 setTimeout(() => content.classList.add('open'), 10);
                 arrow.classList.add('open');
@@ -1771,15 +2156,14 @@
                 setTimeout(() => content.classList.add('hidden'), 300);
             }
         };
-
         window.toggleSectionTasks = function(sectionSlug, checkState) {
             const checkboxes = document.querySelectorAll(`input[type="checkbox"][data-section="${sectionSlug}"]`);
             checkboxes.forEach(cb => {
                 cb.checked = checkState;
             });
             updateCurrentShiftScore();
+            saveShiftData(false);
         };
-        
         function setupReminders() {
             const modalBg = document.getElementById('reminder-modal-bg');
             const modal = document.getElementById('reminder-modal');
@@ -1800,22 +2184,12 @@
                 if (btn) {
                     taskToRemind = btn.dataset.taskName;
                     taskNameEl.textContent = `Task: ${taskToRemind}`;
-                    modalBg.classList.remove('hidden');
-                    modalBg.classList.add('flex');
-                    setTimeout(() => {
-                        modalBg.classList.remove('opacity-0');
-                        modal.classList.remove('scale-95', 'opacity-0');
-                    }, 10);
+                    showModal(modalBg, modal);
                 }
             });
 
             const closeModal = () => {
-                modalBg.classList.add('opacity-0');
-                modal.classList.add('scale-95', 'opacity-0');
-                setTimeout(() => {
-                    modalBg.classList.add('hidden');
-                    modalBg.classList.remove('flex');
-                }, 300);
+                hideModal(modalBg, modal);
             };
 
             if (cancelReminderBtn) cancelReminderBtn.addEventListener('click', closeModal);
@@ -1830,38 +2204,48 @@
 
             function startTravelPathTimer() {
                 stopTravelPathTimer();
+                const interval = 30 * 60 * 1000; // 30 minutes in production
+
                 function runAlarm() {
                     const isChecked = document.getElementById('travel-path-alarm-toggle')?.checked;
                     if (isChecked) {
-                        new Notification("McDonald's Shift Manager", {
-                            body: "Time to do your 30-minute travel path!",
-                            icon: "https://placehold.co/192x192/c00000/ffc72c?text=M"
-                        });
-                        travelPathTimerId = setTimeout(runAlarm, 30 * 60 * 1000);
+                        showAlert("Time to do your 30-minute Travel Path check!", true);
+                        travelPathTimerId = setTimeout(runAlarm, interval);
                     } else {
                         stopTravelPathTimer();
                     }
                 }
-                travelPathTimerId = setTimeout(runAlarm, 30 * 60 * 1000);
+                travelPathTimerId = setTimeout(runAlarm, interval);
             }
 
             if (setReminderBtn) {
                 setReminderBtn.addEventListener('click', () => {
                     const minutes = parseInt(reminderTimeInput.value, 10);
                     if (isNaN(minutes) || minutes <= 0) {
-                        reminderTimeInput.focus();
-                        reminderTimeInput.classList.add('border-red-500');
+                        reminderTimeInput.classList.add('border-red-500', 'ring-2', 'ring-red-200');
                         return;
                     }
-                    reminderTimeInput.classList.remove('border-red-500');
-                    setTimeout(() => { showAlert(taskToRemind); }, minutes * 60 * 1000);
+                    reminderTimeInput.classList.remove('border-red-500', 'ring-2', 'ring-red-200');
+                    setTimeout(() => { showAlert(`Follow up required for: ${taskToRemind}`, false); }, minutes * 60 * 1000);
                     closeModal();
                 });
             }
 
-            const showAlert = (message) => {
+            const showAlert = (message, isAlarm) => {
                 if (alertMessage) alertMessage.textContent = message;
-                if (alertBox) alertBox.classList.remove('transform', 'translate-x-full', 'opacity-0');
+                if (alertBox) {
+                    const title = document.getElementById('alert-box').querySelector('h3');
+                    if (isAlarm) {
+                         title.textContent = "Travel Path Alarm!";
+                         alertBox.classList.add('border-red-400');
+                         alertBox.classList.remove('border-yellow-400');
+                    } else {
+                         title.textContent = "Reminder!";
+                         alertBox.classList.add('border-yellow-400');
+                         alertBox.classList.remove('border-red-400');
+                    }
+                    alertBox.classList.remove('transform', 'translate-x-full', 'opacity-0');
+                }
             };
 
             if (acknowledgeAlertBtn) {
@@ -1871,29 +2255,16 @@
             }
             
             function checkNotificationPermission() {
-                const label = document.querySelector('label[for="travel-path-alarm-toggle"]');
-                if (!travelPathAlarm) return;
-
-                if (!("Notification" in window)) {
-                    travelPathAlarm.disabled = true;
-                    if (label) label.classList.add('text-gray-400');
-                    return;
-                }
+                if (!travelPathAlarm || !("Notification" in window)) return;
 
                 if (Notification.permission === "denied") {
-                    travelPathAlarm.disabled = true;
                     travelPathAlarm.checked = false;
-                    if (label) label.classList.add('text-gray-400');
-                } else {
-                    travelPathAlarm.disabled = false;
-                    if (label) label.classList.remove('text-gray-400');
                 }
             }
             checkNotificationPermission();
 
             if (travelPathAlarm) {
                 travelPathAlarm.addEventListener('change', () => {
-                    if (travelPathAlarm.disabled) return;
                     if (travelPathAlarm.checked) {
                         if (Notification.permission === "granted") {
                             startTravelPathTimer();
@@ -1903,17 +2274,16 @@
                                     startTravelPathTimer();
                                 } else {
                                     travelPathAlarm.checked = false;
-                                    checkNotificationPermission(); 
                                 }
                             });
                         }
                     } else {
                         stopTravelPathTimer();
                     }
+                    saveShiftData(false); // Save the state of the toggle
                 });
             }
         }
-
         function setupTargetCalculations() {
             setupAutoTargets();
 
@@ -1929,14 +2299,19 @@
                     
                     if (diffOutput) {
                         diffOutput.textContent = diff.toFixed(0);
-                        if (diff < 0) {
-                            diffOutput.classList.remove('text-green-600');
-                            diffOutput.classList.add('text-red-600');
-                        } else if (diff > 0) {
-                            diffOutput.classList.remove('text-red-600');
-                            diffOutput.classList.add('text-green-600');
+                        let isLowerBetter = ['target-oepe', 'target-opt', 'target-r2p', 'target-rw', 'target-crew-labor'].includes(targetInput.id);
+                        
+                        let isAchieved = isLowerBetter ? (actual <= target && target > 0) : (actual >= target && target > 0);
+                        
+                        diffOutput.classList.remove('text-red-600', 'text-green-600');
+                        if (target > 0 || actual > 0) { 
+                            if (isAchieved) {
+                                diffOutput.classList.add('text-green-600');
+                            } else {
+                                diffOutput.classList.add('text-red-600');
+                            }
                         } else {
-                            diffOutput.classList.remove('text-red-600', 'text-green-600');
+                             diffOutput.textContent = '0';
                         }
                     }
                     updateCurrentShiftScore(); 
@@ -1946,7 +2321,6 @@
                 if (actualInput) actualInput.addEventListener('input', calculateDiff);
             });
             
-            // Leader Name Input Listener
             const shiftLeaderInput = document.getElementById('shift-leader');
             if(shiftLeaderInput) {
                 shiftLeaderInput.addEventListener('input', () => {
@@ -1956,124 +2330,21 @@
                 });
             }
         }
-        
         function setupAutoTargets() {
             const salesInput = document.getElementById('target-sales');
             const rwInput = document.getElementById('target-rw');
 
             if (salesInput && rwInput) {
                 salesInput.addEventListener('input', () => {
-                    const sales = parseFloat(salesInput.value);
-                    if (!isNaN(sales)) {
-                        const rwTarget = (sales * 0.0015).toFixed(2);
+                    const sales = parseFloat(salesInput.value) || 0;
+                    if (sales > 0) {
+                        const rwTarget = (sales * 0.0015).toFixed(2); 
                         rwInput.value = rwTarget;
-                        rwInput.dispatchEvent(new Event('input'));
+                        rwInput.dispatchEvent(new Event('input')); 
                     }
                 });
             }
         }
-
-        // --- Score Calculation Logic & Progress Bar Updates ---
-        function updateCurrentShiftScore() {
-            let score = 0;
-            const maxScore = 100;
-
-            const getVal = (id) => parseFloat(document.getElementById(id)?.value) || 0;
-            
-            // Metrics logic...
-            const targetSales = getVal('target-sales');
-            const actualSales = getVal('actual-sales');
-            if (targetSales > 0 && actualSales >= targetSales) score += 15;
-
-            const gcTarget = getVal('target-gc');
-            const gcActual = getVal('actual-gc');
-            if (gcTarget > 0 && gcActual >= gcTarget) score += 10;
-
-            const acTarget = getVal('target-ac');
-            const acActual = getVal('actual-ac');
-            if (acTarget > 0 && acActual >= acTarget) score += 10;
-
-            const rwTarget = getVal('target-rw');
-            const rwActual = getVal('actual-rw');
-            if(rwActual <= rwTarget) score += 10;
-
-            const oepeTarget = getVal('target-oepe');
-            const oepeActual = getVal('actual-oepe');
-            if (oepeTarget > 0 && oepeActual <= oepeTarget) score += 15;
-
-            const r2pTarget = getVal('target-r2p');
-            const r2pActual = getVal('actual-r2p');
-            if (r2pTarget > 0 && r2pActual <= r2pTarget) score += 10;
-
-            const cfsTarget = getVal('target-cfs');
-            const cfsActual = getVal('actual-cfs');
-            if (cfsTarget > 0 && cfsActual >= cfsTarget) score += 10;
-
-            // Global Checklist Score
-            const allCheckboxes = document.querySelectorAll('.task-checkbox');
-            const totalTasks = allCheckboxes.length;
-            let checkedTasks = 0;
-            allCheckboxes.forEach(box => {
-                if (box.checked) checkedTasks++;
-            });
-
-            if (totalTasks > 0) {
-                const checklistScore = Math.round((checkedTasks / totalTasks) * 20);
-                score += checklistScore;
-            }
-
-            // Update Display
-            const scoreDisplay = document.getElementById('current-shift-score');
-            if (scoreDisplay) {
-                scoreDisplay.textContent = score;
-                if (score >= 90) scoreDisplay.className = "text-5xl font-extrabold mcd-green";
-                else if (score >= 70) scoreDisplay.className = "text-5xl font-extrabold mcd-yellow";
-                else scoreDisplay.className = "text-5xl font-extrabold mcd-text-red";
-            }
-
-            // 2. Section Progress Bar Updates
-            const uniqueSections = new Set();
-            document.querySelectorAll('.task-checkbox').forEach(cb => {
-                if(cb.dataset.section) uniqueSections.add(cb.dataset.section);
-            });
-
-            uniqueSections.forEach(slug => {
-                const sectionCheckboxes = document.querySelectorAll(`.task-checkbox[data-section="${slug}"]`);
-                const total = sectionCheckboxes.length;
-                let checked = 0;
-                sectionCheckboxes.forEach(cb => { if(cb.checked) checked++; });
-                
-                const percentage = total === 0 ? 0 : (checked / total) * 100;
-                
-                // Update Elements
-                const progressBar = document.getElementById(`progress-${slug}`);
-                const countSpan = document.getElementById(`count-${slug}`);
-                const badge = document.getElementById(`badge-${slug}`);
-                
-                if(progressBar) {
-                    progressBar.style.width = `${percentage}%`;
-                    if(percentage === 100) {
-                        progressBar.classList.remove('bg-mcd-yellow');
-                        progressBar.classList.add('bg-green-500');
-                    } else {
-                        progressBar.classList.add('bg-mcd-yellow');
-                        progressBar.classList.remove('bg-green-500');
-                    }
-                }
-                
-                if(countSpan) {
-                    countSpan.textContent = `${checked}/${total}`;
-                    countSpan.className = percentage === 100 ? "text-xs text-green-600 font-bold mr-3" : "text-xs text-gray-500 font-semibold mr-3";
-                }
-                
-                if(badge) {
-                    if(percentage === 100) badge.classList.remove('hidden');
-                    else badge.classList.add('hidden');
-                }
-            });
-        }
-        
-        // --- Tab Navigation ---
         function showTab(tabId) {
             try {
                 document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
@@ -2086,7 +2357,6 @@
                 let idToSave = tabId;
 
                 if (!tabToShow || !btnToActivate) {
-                    // Default to Shift Plans if not found
                     tabToShow = document.getElementById(`tab-shift-plans`);
                     btnToActivate = document.querySelector(`[data-tab="shift-plans"]`);
                     idToSave = 'shift-plans';
@@ -2096,35 +2366,44 @@
                     tabToShow.classList.remove('hidden');
                     btnToActivate.classList.add('active-tab');
                     localStorage.setItem('activeTab', idToSave);
+                    
+                    if (tabId === 'during-shift') {
+                        generateTravelPathReport();
+                    } else if (tabId === 'travel-path') {
+                        const defaultSubTab = document.querySelector('#tab-travel-path .sub-tab-btn[data-sub-tab="checklist"]');
+                        const defaultSubTabContent = document.querySelector('#sub-tab-checklist');
+                        document.querySelectorAll('#tab-travel-path .sub-tab-btn').forEach(btn => btn.classList.remove('active-sub-tab'));
+                        document.querySelectorAll('#tab-travel-path .sub-tab-content').forEach(content => content.classList.add('hidden'));
+                        if(defaultSubTab) defaultSubTab.classList.add('active-sub-tab');
+                        if(defaultSubTabContent) defaultSubTabContent.classList.remove('hidden');
+
+                        generateTravelPathToDoReport();
+                    }
                 }
             } catch (e) {
                 console.error("Error in showTab:", e);
             }
         }
-        
-        // --- ROBUST TO-DO LISTS ---
-        
-        function generateTravelPathReport() {
-            const container = document.getElementById('travel-path-report-container');
+        function generateReport(containerId, checklistContainerId, emptyMessage) { 
+            const container = document.getElementById(containerId);
             if (!container) return;
             
             let reportHtml = '';
             let itemsFound = 0;
             
-            // 1. Find all accordion items within the Pre-Shift tab
-            const preShiftAccordions = document.querySelectorAll('#pre-shift-accordion-container .accordion-item');
+            const accordions = document.querySelectorAll(`#${checklistContainerId} .accordion-item`);
             
-            preShiftAccordions.forEach(accordion => {
-                const sectionTitle = accordion.querySelector('h3')?.innerText || 'Unnamed Section';
+            accordions.forEach(accordion => {
+                const header = accordion.querySelector('h3');
+                const sectionTitle = header ? header.textContent : 'Unnamed Section';
                 const cleanTitle = sectionTitle.replace("DONE", "").trim();
-                
                 let sectionTasksHtml = '';
                 
                 const tasks = accordion.querySelectorAll('.task-item');
                 tasks.forEach(task => {
                     const checkbox = task.querySelector('.task-checkbox');
                     const label = task.querySelector('label');
-                    const notes = task.querySelector('.task-notes');
+                    const notes = task.querySelector('input[type="text"].task-notes'); // Specify input[type="text"]
                     
                     if (checkbox && label && !checkbox.checked) {
                         itemsFound++;
@@ -2153,96 +2432,45 @@
                 }
             });
             
-            container.innerHTML = itemsFound === 0 ? '<div class="p-6 bg-green-50 border border-green-200 rounded-lg text-center"><p class="text-green-700 font-bold text-lg">✅ All pre-shift tasks are complete!</p><p class="text-green-600 text-sm">Great job setting up the shift.</p></div>' : reportHtml;
+            container.innerHTML = itemsFound === 0 ? `<div class="p-6 bg-green-50 border border-green-200 rounded-lg text-center"><p class="text-green-700 font-bold text-lg">✅ ${emptyMessage}</p></div>` : reportHtml;
         }
-
-        function generateTravelPathToDoReport() {
-            const container = document.getElementById('travel-path-todo-list-container');
-            if (!container) return;
-            
-            let reportHtml = '';
-            let itemsFound = 0;
-            
-            // 1. Find all accordion items within the Travel Path tab's "Full Checklist"
-            const travelPathAccordions = document.querySelectorAll('#travel-path-accordion-container .accordion-item');
-            
-            travelPathAccordions.forEach(accordion => {
-                const sectionTitle = accordion.querySelector('h3')?.innerText || 'Unnamed Section';
-                const cleanTitle = sectionTitle.replace("DONE", "").trim();
-                let sectionTasksHtml = '';
-                
-                const tasks = accordion.querySelectorAll('.task-item');
-                tasks.forEach(task => {
-                    const checkbox = task.querySelector('.task-checkbox');
-                    const label = task.querySelector('label');
-                    const notes = task.querySelector('.task-notes');
-                    
-                    if (checkbox && label && !checkbox.checked) {
-                        itemsFound++;
-                        const taskText = label.textContent || 'Unnamed Task';
-                        const noteText = (notes && notes.value.trim()) ? notes.value.trim() : '';
-                        
-                        sectionTasksHtml += `
-                            <li class="flex items-start py-2">
-                                <span class="text-2xl mr-3 text-mcd-red">☐</span>
-                                <div>
-                                    <span class="text-gray-800 font-medium">${taskText}</span>
-                                    ${noteText ? `<p class="text-sm mcd-text-red font-medium pl-1 mt-1 bg-red-50 p-1 rounded"><strong>Note:</strong> ${noteText}</p>` : ''}
-                                </div>
-                            </li>
-                        `;
-                    }
-                });
-                
-                if (sectionTasksHtml) {
-                    reportHtml += `
-                        <div class="mb-6 bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                            <h4 class="text-lg font-bold text-mcd-red border-b border-gray-100 pb-2 mb-3">${cleanTitle}</h4>
-                            <ul class="list-none space-y-1">${sectionTasksHtml}</ul>
-                        </div>
-                    `;
-                }
-            });
-            
-            container.innerHTML = itemsFound === 0 ? '<div class="p-6 bg-green-50 border border-green-200 rounded-lg text-center"><p class="text-green-700 font-bold text-lg">✅ Travel Path is clear!</p><p class="text-green-600 text-sm">Excellent standards maintained.</p></div>' : reportHtml;
-        }
-
-
-        function setupAccordionControls() {
+        const generateTravelPathReport = () => generateReport('travel-path-report-container', 'pre-shift-accordion-container', 'All pre-shift tasks are complete! Great job setting up the shift.');
+        const generateTravelPathToDoReport = () => generateReport('travel-path-todo-list-container', 'travel-path-accordion-container', 'Travel Path is clear! Excellent standards maintained.');
+        function setupAccordionControls() { 
             document.querySelectorAll('.tab-content').forEach(tabContent => {
-                const expandBtn = tabContent.querySelector('.expand-all-btn');
-                const collapseBtn = tabContent.querySelector('.collapse-all-btn');
                 const accordionContainer = tabContent.querySelector('[id$="-accordion-container"]');
                 if (!accordionContainer) return;
 
-                if (expandBtn) {
-                    expandBtn.addEventListener('click', () => {
-                        const items = accordionContainer.querySelectorAll('.accordion-item');
-                        items.forEach(item => {
-                            const content = item.querySelector('.accordion-content');
-                            const arrow = item.querySelector('.accordion-arrow');
+                const expandBtn = tabContent.querySelector('.expand-all-btn');
+                const collapseBtn = tabContent.querySelector('.collapse-all-btn');
+
+                const items = accordionContainer.querySelectorAll('.accordion-item');
+
+                const toggleSections = (isOpen) => {
+                    items.forEach(item => {
+                        const content = item.querySelector('.accordion-content');
+                        const arrow = item.querySelector('.accordion-arrow');
+                        if (isOpen) {
                             content.classList.remove('hidden');
                             setTimeout(() => content.classList.add('open'), 10);
                             arrow.classList.add('open');
-                        });
-                    });
-                }
-                if (collapseBtn) {
-                    collapseBtn.addEventListener('click', () => {
-                        const items = accordionContainer.querySelectorAll('.accordion-item');
-                        items.forEach(item => {
-                            const content = item.querySelector('.accordion-content');
-                            const arrow = item.querySelector('.accordion-arrow');
+                        } else {
                             content.classList.remove('open');
                             arrow.classList.remove('open');
                             setTimeout(() => content.classList.add('hidden'), 300);
-                        });
+                        }
                     });
+                };
+
+                if (expandBtn) {
+                    expandBtn.addEventListener('click', () => toggleSections(true));
+                }
+                if (collapseBtn) {
+                    collapseBtn.addEventListener('click', () => toggleSections(false));
                 }
             });
         }
-
-        function setupTravelPathSubTabs() {
+        function setupTravelPathSubTabs() { 
             const tabContainer = document.getElementById('tab-travel-path');
             if (!tabContainer) return;
 
@@ -2257,108 +2485,20 @@
                     button.classList.add('active-sub-tab');
                     const contentToShow = tabContainer.querySelector(`#sub-tab-${subTabId}`);
                     if (contentToShow) contentToShow.classList.remove('hidden');
+                    
+                    if (subTabId === 'todo') {
+                         generateTravelPathToDoReport();
+                    }
                 });
             });
 
             const defaultSubTab = tabContainer.querySelector('.sub-tab-btn[data-sub-tab="checklist"]');
-            const defaultSubTabContent = tabContainer.querySelector('#sub-tab-checklist');
+            const defaultSubTabContent = document.getElementById('sub-tab-checklist'); 
             if(defaultSubTab) defaultSubTab.classList.add('active-sub-tab');
             if(defaultSubTabContent) defaultSubTabContent.classList.remove('hidden');
         }
-
-        // --- FIRESTORE SHIFT MANAGEMENT FUNCTIONS ---
-
-        function clearShiftForm() {
-            document.querySelectorAll('#tab-shift-plans .dashboard-input, #tab-shift-targets .dashboard-input').forEach(input => {
-                if (input.type === 'checkbox' || input.type === 'radio') {
-                    input.checked = false;
-                } else {
-                    input.value = '';
-                }
-            });
-            
-            document.querySelectorAll('.task-checkbox').forEach(box => {
-                box.checked = false;
-            });
-            
-            document.querySelectorAll('.task-notes').forEach(note => {
-                note.value = '';
-            });
-
-            document.querySelectorAll('.diff-output').forEach(diff => {
-                diff.textContent = '0';
-                diff.classList.remove('text-red-600', 'text-green-600');
-            });
-            
-            updateCurrentShiftScore();
-            currentDocId = null;
-        }
-
-        function scrapeDataFromForm() {
-            const shiftData = {};
-
-            document.querySelectorAll('[data-save]').forEach(input => {
-                const key = input.dataset.save;
-                if (input.type === 'checkbox') {
-                    shiftData[key] = input.checked;
-                } else {
-                    shiftData[key] = input.value;
-                }
-            });
-            
-            document.querySelectorAll('.task-checkbox').forEach(box => {
-                const key = `check-${box.dataset.taskId}`;
-                shiftData[key] = box.checked;
-            });
-            
-            document.querySelectorAll('.task-notes').forEach(note => {
-                const key = `notes-${note.dataset.taskId}`;
-                if (key && note.value) { 
-                    shiftData[key] = note.value;
-                }
-            });
-            
-            return shiftData;
-        }
-
-        function populateFormWithData(data) {
-            if (!data) return;
-            
-            clearShiftForm();
-
-            document.querySelectorAll('[data-save]').forEach(input => {
-                const key = input.dataset.save;
-                if (data[key] !== undefined) {
-                    if (input.type === 'checkbox') {
-                        input.checked = data[key];
-                    } else {
-                        input.value = data[key];
-                    }
-                    if (input.classList.contains('target-input') || input.classList.contains('actual-input')) {
-                        input.dispatchEvent(new Event('input'));
-                    }
-                    if (input.id === 'travel-path-alarm-toggle') {
-                         input.dispatchEvent(new Event('change'));
-                    }
-                }
-            });
-            
-            document.querySelectorAll('.task-checkbox').forEach(box => {
-                const key = `check-${box.dataset.taskId}`;
-                box.checked = data[key] === true;
-            });
-            
-            document.querySelectorAll('.task-notes').forEach(note => {
-                const key = `notes-${note.dataset.taskId}`;
-                if (key && data[key] !== undefined) {
-                    note.value = data[key];
-                }
-            });
-            
-            updateCurrentShiftScore();
-        }
-
-        // --- AI SUMMARY FUNCTIONS ---
+        
+        // --- AI SUMMARY FUNCTIONS (omitted for brevity) ---
         const generateSummaryBtn = document.getElementById('generate-summary-btn');
         const loadingModalBg = document.getElementById('ai-loading-modal-bg');
         const loadingModal = document.getElementById('ai-loading-modal');
@@ -2368,8 +2508,6 @@
         const closeResultBtn = document.getElementById('close-ai-result-btn');
         const closeResultBtn2 = document.getElementById('close-ai-result-btn-2');
         const copySummaryBtn = document.getElementById('copy-summary-btn');
-        
-        // Finalization Modal Elements
         const finalizeModalBg = document.getElementById('finalize-modal-bg');
         const finalizeModal = document.getElementById('finalize-modal');
         const finalizeName = document.getElementById('finalize-name');
@@ -2377,128 +2515,58 @@
         const closeFinalizeBtn = document.getElementById('close-finalize-btn');
         const continueSummaryBtn = document.getElementById('continue-summary-btn');
 
-        // --- Modal Functions ---
-        function showLoadingModal() {
-            loadingModalBg.classList.remove('hidden');
-            loadingModalBg.classList.add('flex');
+        function showModal(bg, modal) { 
+            bg.classList.remove('hidden');
+            bg.classList.add('flex');
             setTimeout(() => {
-                loadingModalBg.classList.remove('opacity-0');
-                loadingModal.classList.remove('scale-95', 'opacity-0');
+                bg.classList.remove('opacity-0');
+                modal.classList.remove('scale-95', 'opacity-0');
             }, 10);
         }
-
-        function hideLoadingModal() {
-            loadingModalBg.classList.add('opacity-0');
-            loadingModal.classList.add('scale-95', 'opacity-0');
+        function hideModal(bg, modal) { 
+            bg.classList.add('opacity-0');
+            modal.classList.add('scale-95', 'opacity-0');
             setTimeout(() => {
-                loadingModalBg.classList.add('hidden');
-                loadingModalBg.classList.remove('flex');
+                bg.classList.add('hidden');
+                bg.classList.remove('flex');
             }, 300);
         }
+        const showLoadingModal = () => showModal(loadingModalBg, loadingModal);
+        const hideLoadingModal = () => hideModal(loadingModalBg, loadingModal);
+        const showResultModal = (text) => { aiSummaryOutput.textContent = text; showModal(resultModalBg, resultModal); }
+        const hideResultModal = () => hideModal(resultModalBg, resultModal);
+        const showFinalizeModal = () => {
+             const currentName = document.getElementById('shift-leader').value;
+             const currentDate = document.getElementById('shift-date').value;
+             finalizeName.value = currentName || '';
+             finalizeDate.value = currentDate || new Date().toISOString().slice(0, 10); 
+             finalizeName.classList.remove('border-red-500', 'ring-2', 'ring-red-200');
+             finalizeDate.classList.remove('border-red-500', 'ring-2', 'ring-red-200');
+             showModal(finalizeModalBg, finalizeModal);
+        }
+        const hideFinalizeModal = () => hideModal(finalizeModalBg, finalizeModal);
 
-        function showResultModal(text) {
-            aiSummaryOutput.textContent = text;
-            resultModalBg.classList.remove('hidden');
-            resultModalBg.classList.add('flex');
-            setTimeout(() => {
-                resultModalBg.classList.remove('opacity-0');
-                resultModal.classList.remove('scale-95', 'opacity-0');
-            }, 10);
-        }
-
-        function hideResultModal() {
-            resultModalBg.classList.add('opacity-0');
-            resultModal.classList.add('scale-95', 'opacity-0');
-            setTimeout(() => {
-                resultModalBg.classList.add('hidden');
-                resultModalBg.classList.remove('flex');
-            }, 300);
-        }
-        
-        function showFinalizeModal() {
-            const currentName = document.getElementById('shift-leader').value;
-            const currentDate = document.getElementById('shift-date').value;
-            
-            finalizeName.value = currentName || '';
-            finalizeDate.value = currentDate || '';
-            
-            finalizeModalBg.classList.remove('hidden');
-            finalizeModalBg.classList.add('flex');
-            setTimeout(() => {
-                finalizeModalBg.classList.remove('opacity-0');
-                finalizeModal.classList.remove('scale-95', 'opacity-0');
-            }, 10);
-        }
-        
-        function hideFinalizeModal() {
-            finalizeModalBg.classList.add('opacity-0');
-            finalizeModal.classList.add('scale-95', 'opacity-0');
-            setTimeout(() => {
-                finalizeModalBg.classList.add('hidden');
-                finalizeModalBg.classList.remove('flex');
-            }, 300);
-        }
-
-        if (generateSummaryBtn) {
-            generateSummaryBtn.addEventListener('click', showFinalizeModal);
-        }
-        
-        if (closeFinalizeBtn) {
-            closeFinalizeBtn.addEventListener('click', hideFinalizeModal);
-        }
-        
-        if (continueSummaryBtn) {
-            continueSummaryBtn.addEventListener('click', () => {
-                const name = finalizeName.value.trim();
-                const date = finalizeDate.value;
-                
-                if (!name || !date) {
-                    alert("Please enter both your name and the shift date to continue.");
-                    return;
-                }
-                
-                document.getElementById('shift-leader').value = name;
-                document.getElementById('shift-date').value = date;
-                
-                hideFinalizeModal();
-                
-                handleGenerateSummary();
-            });
-        }
-        
-        if (closeResultBtn) closeResultBtn.addEventListener('click', hideResultModal);
-        if (closeResultBtn2) closeResultBtn2.addEventListener('click', hideResultModal);
-        if (copySummaryBtn) copySummaryBtn.addEventListener('click', () => {
-            const textToCopy = aiSummaryOutput.textContent;
-            try {
-                const textArea = document.createElement("textarea");
-                textArea.value = textToCopy;
-                textArea.style.position = "fixed"; 
-                document.body.appendChild(textArea);
-                textArea.focus();
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-                copySummaryBtn.textContent = 'Copied!';
-                setTimeout(() => { copySummaryBtn.textContent = 'Copy to Clipboard'; }, 2000);
-            } catch (err) {
-                console.error('Fallback: Oops, unable to copy', err);
-            }
-        });
 
         async function handleGenerateSummary() {
+            if (CLOUD_FUNCTION_ENDPOINT === "https://us-central1-mcdonalds-san-carlos.cloudfunctions.net/generateHandoverSummary") {
+                showResultModal("Error: Configuration incomplete. Please confirm the Cloud Function is deployed and the Firebase project is properly configured.");
+                return;
+            }
+
             showLoadingModal();
             
             const saveSuccess = await saveShiftData(true);
             
             if (!saveSuccess) {
                 hideLoadingModal();
+                showResultModal("Error: Could not finalize shift data. Please check your network and ensure your Firebase rules allow write access.");
                 return;
             }
             
             await loadLeaderboard();
+            await loadMonthlyWinners();
 
-            // 1. Scrape data
+            // 3. Scrape data for AI prompt (omitted for brevity)
             const shiftLeader = document.getElementById('shift-leader').value || 'Manager';
             const shiftTimeSelect = document.getElementById('shift-time');
             const shiftTime = shiftTimeSelect.options[shiftTimeSelect.selectedIndex]?.text || 'Shift';
@@ -2514,17 +2582,20 @@
             });
 
             const notes = [];
-            document.querySelectorAll('.task-notes').forEach(input => {
-                if (input.value.trim() && input.dataset.taskId) {
-                    const label = document.querySelector(`label[for="check-${input.dataset.taskId}"]`);
+            const scrapedData = scrapeDataFromForm();
+            for (const key in scrapedData) {
+                if (key.startsWith('notes-') && scrapedData[key].trim()) {
+                    const taskId = key.replace('notes-', '');
+                    const label = document.querySelector(`label[for="check-${taskId}"]`);
                     if (label) {
                         notes.push({
                             task: label.textContent.trim(),
-                            note: input.value.trim()
+                            note: scrapedData[key].trim()
                         });
                     }
                 }
-            });
+            }
+
 
             const otherTasks = {
                 "People (Names)": document.getElementById('people-names').value,
@@ -2540,14 +2611,10 @@ Your goal is to be professional, clean, and highly organized.
 ONLY use plain text.
 DO NOT use Markdown (like **, #, or *).
 Format lists using a simple dash (-).
-DO NOT use asterisks for any formatting.
 
 Here are the metric rules:
-- Sales, GC (Guest Count), AC (Average Check): Higher is better.
-- Crew Labor: Lower is better.
-- RW (Raw Waste): Lower is better.
-- OEPE, Order Prep, R2P (Receipt to Present): These are *times*. Lower is better.
-- CFS (Customer Feedback Survey): This is a *count*. Higher is better.
+- Sales, GC (Guest Count), AC (Average Check), CFS (Customer Feedback Survey): Higher is better.
+- Crew Labor, RW (Raw Waste), OEPE (Overall Experience Per Hour), Order Prep, R2P (Receipt to Present): Lower is better (These are usually seconds or percentages, analyze them as costs/times to be minimized).
 
 Structure your response like this:
 
@@ -2557,20 +2624,14 @@ Shift Highlights
 - [One or two key positive takeaways from the shift]
 
 Key Performance (KPIs)
-- [Analyze ALL KPIs provided. You MUST include the numbers for every KPI.]
+- [Analyze ALL KPIs provided. You MUST include the numbers for every KPI. Be explicit about "Above" or "Below" Target.]
 - [ALWAYS use this format: - [Metric] finished [Performance] (Actual: [X] vs Target: [Y]).]
-- [Example: - Sales finished strong, finishing Above Target (Actual: 10500 vs Target: 10000).]
-- [Example: - Raw Waste (RW) was high, finishing Above Target (Actual: 50 vs Target: 40).]
-- [Example: - OEPE was fast, finishing Below Target (Actual: 100s vs Target: 120s).]
-- [Example: - Order Prep was slow, finishing Above Target (Actual: 60s vs Target: 50s).]
 
 Critical Focus / Action Items
-- [List all tasks that had notes/actions required.]
-- [Example: - Outside Restaurant: Drive Thru lane was dirty.]
-- [Example: - Production Area: Fryer 3 temp was fluctuating.]
+- [List all tasks that had notes/actions required from the checklists.]
 
 Other Notes
-- [Summarize the People, FUSOC, and Other notes.]
+- [Summarize the People, FUSOC, and Other notes provided in the targets tab. Note any crew issues or maintenance needs.]
 `;
 
             let userQuery = "Please generate a handover summary for the following shift data:\n";
@@ -2578,150 +2639,117 @@ Other Notes
             userQuery += "KPIs (Label: {Target, Actual}):\n" + JSON.stringify(kpis, null, 2) + "\n";
             userQuery += "Tasks with Notes:\n" + JSON.stringify(notes, null, 2) + "\n";
             userQuery += "Other Task Notes:\n" + JSON.stringify(otherTasks, null, 2);
-
-            // 3. Call API
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
             
-            const payload = {
-                contents: [{ parts: [{ text: userQuery }] }],
-                systemInstruction: {
-                    parts: [{ text: systemPrompt }]
-                },
-            };
+            console.log("AI Proxy Payload:", userQuery);
 
+            // 4. Call Cloud Function via Direct URL
             try {
-                let response;
-                let delay = 1000;
-                for (let i = 0; i < 5; i++) {
-                    response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (response.ok) {
-                        break; 
-                    }
-
-                    if (response.status === 429) {
-                        console.warn(`API throttled. Retrying in ${delay}ms...`);
-                        await new Promise(resolve => setTimeout(resolve, delay));
-                        delay *= 2;
-                    } else {
-                        break;
-                    }
-                }
+                const response = await fetch(CLOUD_FUNCTION_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ systemPrompt, userQuery })
+                });
 
                 if (!response.ok) {
                     const errorBody = await response.json();
-                    throw new Error(`API Error ${response.status}: ${errorBody.error?.message || response.statusText}`);
+                    throw new Error(`Cloud Function Error ${response.status}: ${errorBody.error || errorBody.details}`);
                 }
 
                 const result = await response.json();
-                const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                const text = result.summary || "No summary text returned.";
 
-                if (text) {
-                    hideLoadingModal();
-                    showResultModal(text);
-                } else {
-                    throw new Error("No text returned from AI.");
-                }
-            } catch (error) {
-                console.error("Error generating summary:", error);
                 hideLoadingModal();
-                showResultModal(`Error generating summary: ${error.message}`);
+                showResultModal(text);
+                
+            } catch (error) {
+                console.error("Error generating summary via direct connection:", error);
+                hideLoadingModal();
+                showResultModal(`Connection Error: ${error.message}. Please ensure the Cloud Function is active and permissions are set to 'allUsers'.`);
             }
         }
 
         // --- App Initialization ---
-        async function main() {
-            try {
-                app = initializeApp(firebaseConfig);
-                const analytics = getAnalytics(app);
-                db = getFirestore(app);
-                auth = getAuth(app);
-            } catch (e) {
-                console.error("Firebase failed to initialize:", e);
-                document.body.innerHTML = `<div class="p-8 text-center text-red-600"><strong>Error:</strong> Could not connect to the application database. Please contact support. (Details: ${e.message})</div>`;
-                return;
-            }
+        function initApp() {
+             // 1. UI Setup (Guaranteed to run first)
+            setupAccordions();
+            setupReminders();
+            setupTargetCalculations();
+            setupAccordionControls(); 
+            setupTravelPathSubTabs();
 
-            onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    userId = user.uid;
-                    isAuthReady = true;
-                    setTimeout(() => {
-                        initShiftPlans();
-                        initLeaderboard(); 
-                    }, 500);
-                }
-            });
-
-            try {
-                // FIX: The __initial_auth_token provided by the preview environment is for the sandbox project.
-                // Since we are connecting directly to 'mcdonalds-san-carlos', that token causes a mismatch error.
-                // We skip custom token auth and go straight to Anonymous Auth for your project.
-                console.log("Attempting Anonymous Auth to mcdonalds-san-carlos...");
-                await signInAnonymously(auth);
-            } catch (e) {
-                console.error("Authentication failed:", e);
-                
-                // Log specific advice for common anonymous auth errors
-                if (e.code === 'auth/operation-not-allowed') {
-                    console.warn("Enable Anonymous Auth in Firebase Console > Authentication > Sign-in method.");
-                } else if (e.code === 'auth/unauthorized-domain') {
-                    console.warn("Add this domain to Firebase Console > Authentication > Settings > Authorized domains.");
-                }
-
-                // Mark auth as ready (even if failed) so UI doesn't hang, but data won't load.
-                isAuthReady = true; 
-                
-                initShiftPlans();
-                initLeaderboard(); 
-            }
-            
-            try {
-                setupAccordions();
-                setupReminders();
-                setupTargetCalculations();
-                setupAccordionControls(); 
-                setupTravelPathSubTabs();
-                setupScoreListeners();
-            } catch (e) {
-                console.error("Error initializing shift management UI:", e);
-            }
-
-            const validTabIds = ['leaderboard', 'shift-plans', 'shift-targets', 'pre-shift', 'during-shift', 'travel-path', 'post-shift'];
-            let lastTab = localStorage.getItem('activeTab');
-            if (!lastTab || !validTabIds.includes(lastTab)) {
-                lastTab = 'shift-plans'; // Default to Shift Plans
-            }
-            showTab(lastTab);
-
+            // Set up all event listeners for UI interactions
             document.querySelectorAll('.tab-btn').forEach(button => {
                 button.addEventListener('click', () => {
                     showTab(button.dataset.tab);
                 });
             });
             
-            const refreshTravelPathBtn = document.getElementById('refresh-travel-path-btn');
-            if (refreshTravelPathBtn) {
-                refreshTravelPathBtn.addEventListener('click', generateTravelPathReport);
+            // Set up button listeners for reports
+            document.getElementById('refresh-travel-path-btn')?.addEventListener('click', generateTravelPathReport);
+            document.getElementById('refresh-travel-path-todo-btn')?.addEventListener('click', generateTravelPathToDoReport);
+            
+            // Set up all data input listeners (excluding KPI inputs handled in setupTargetCalculations)
+            document.querySelectorAll('[data-save]').forEach(input => {
+                if (input.id === 'shift-date' || input.id === 'shift-leader' || input.id === 'shift-time' || input.id === 'plan-name-input' || 
+                    input.id === 'people-names' || input.id === 'people-actual' || input.id === 'tasks-fusoc' || input.id === 'tasks-prwr' || input.id === 'tasks-others') {
+                    
+                     if (input.tagName === 'SELECT' || input.type === 'date') {
+                         input.addEventListener('change', () => saveShiftData(false));
+                     } else {
+                         input.addEventListener('blur', () => saveShiftData(false));
+                     }
+                }
+                else if (input.id === 'travel-path-alarm-toggle') {
+                    input.addEventListener('change', () => saveShiftData(false));
+                }
+            });
+            document.querySelectorAll('.task-notes').forEach(note => {
+                 note.addEventListener('blur', () => saveShiftData(false));
+            });
+            
+            // Wiring up Finalize button
+            document.getElementById('generate-summary-btn')?.addEventListener('click', showFinalizeModal);
+            document.getElementById('close-finalize-btn')?.addEventListener('click', () => hideModal(finalizeModalBg, finalizeModal));
+            document.getElementById('continue-summary-btn')?.addEventListener('click', () => {
+                 if (!finalizeName.value.trim() || !finalizeDate.value) {
+                     alert("Please confirm your name and shift date.");
+                     return;
+                 }
+                 document.getElementById('shift-leader').value = finalizeName.value.trim();
+                 document.getElementById('shift-date').value = finalizeDate.value;
+                 hideModal(finalizeModalBg, finalizeModal);
+                 handleGenerateSummary();
+             });
+             
+            // 2. Data Initialization (Runs after UI is ready)
+            initFirebaseAndData();
+            
+            // 3. Initial Display
+            const validTabIds = ['leaderboard', 'shift-plans', 'shift-targets', 'pre-shift', 'during-shift', 'travel-path', 'post-shift'];
+            let lastTab = localStorage.getItem('activeTab');
+            if (!lastTab || !validTabIds.includes(lastTab)) {
+                lastTab = 'shift-plans'; 
             }
+            showTab(lastTab);
+            updateCurrentShiftScore();
+        }
 
-            const refreshTravelPathTodoBtn = document.getElementById('refresh-travel-path-todo-btn');
-            if (refreshTravelPathTodoBtn) {
-                refreshTravelPathTodoBtn.addEventListener('click', generateTravelPathToDoReport);
+        async function initFirebaseAndData() {
+            try {
+                initFirebase();
+                await authenticateUser();
+            } catch(e) {
+                 // Firebase init failed (error already displayed in initFirebase)
+                 return;
             }
         }
         
+        // Expose function globally for HTML/inline JS calls
         window.updateCurrentShiftScore = updateCurrentShiftScore;
+        window.saveShiftData = saveShiftData;
 
-        function setupScoreListeners() {
-            // Only need to call setupTargetCalculations
-        }
-
-        main();
+        // CRITICAL FIX: Ensure application runs only after the entire DOM is loaded
+        document.addEventListener('DOMContentLoaded', initApp);
 
     </script>
 </body>
